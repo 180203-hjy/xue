@@ -3,66 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>+1教你学函电 - Pro</title>
+    <title>+1教你学函电 - 期末复习助手 (终极完美版)</title>
+    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 React 和 ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- 升级 Babel 到最新版本以支持更多语法特性 -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 引入 Babel -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap');
-        
-        body {
-            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8fafc;
-            /* 更加细腻的字体渲染 */
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* 动画定义 */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-6px); } 100% { transform: translateY(0px); } }
-        /* 背景光斑动画优化，更柔和 */
-        @keyframes blob { 
-            0% { transform: translate(0px, 0px) scale(1); opacity: 0.4; } 
-            33% { transform: translate(30px, -50px) scale(1.1); opacity: 0.5; } 
-            66% { transform: translate(-20px, 20px) scale(0.9); opacity: 0.4; } 
-            100% { transform: translate(0px, 0px) scale(1); opacity: 0.4; } 
-        }
-
-        .animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-blob { animation: blob 10s infinite; }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-4000 { animation-delay: 4s; }
-
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
         .perspective-1000 { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
-        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* 更好的玻璃拟态 */
-        .glass-header {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        /* 震动动画 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
+        .animate-shake { animation: shake 0.3s ease-in-out; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useRef } = React;
 
-        // --- 工具函数 ---
+        // --- 工具函数：洗牌算法 ---
         function shuffleArray(array) {
             const newArr = [...array];
             for (let i = newArr.length - 1; i > 0; i--) {
@@ -72,7 +47,7 @@
             return newArr;
         }
 
-        // --- 图标组件 (使用统一的细线条风格，更显高级) ---
+        // --- 图标组件 ---
         const IconBase = ({ size = 24, className = "", children, ...props }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>
         );
@@ -95,9 +70,12 @@
         const BookX = (props) => <IconBase {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="m14.5 7-5 5"/><path d="m9.5 7 5 5"/></IconBase>;
         const Trash2 = (props) => <IconBase {...props}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></IconBase>;
         const Bookmark = (props) => <IconBase {...props}><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></IconBase>;
+        const Puzzle = (props) => <IconBase {...props}><path d="M19.439 15.424a5.626 5.626 0 0 0-9.67-5.932 5.56 5.56 0 0 0-4.022 5.344A5.627 5.627 0 0 0 0 19.826a5.64 5.64 0 0 0 3.75 5.253 5.636 5.636 0 0 0 9.273-3.087 5.627 5.627 0 0 0 6.416-6.568z"/></IconBase>;
+        const Layout = (props) => <IconBase {...props}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></IconBase>;
 
-        // --- DATA SOURCE ---
+        // --- DATA SOURCE (完整整合版) ---
 
+        // Part I. Multiple Choice (57 Questions) - 含完整解析
         const mcqData = [
             { id: 1, q: "We __________ that with joint efforts business between us will be developed to our mutual benefit.", options: ["are convince", "convinced", "convincing", "are convinced"], ans: 3, explanation: "固定搭配 'be convinced that...' 意为'确信'。这里是被动语态结构表示状态。" },
             { id: 2, q: "We wish to introduce __________ the largest exporter of fabrics of high quality.", options: ["that we are", "it that we are", "ourselves as", "ourselves to be"], ans: 2, explanation: "固定句型 'introduce oneself as...' (介绍自己是...)。C选项是最地道的商务表达。" },
@@ -152,12 +130,13 @@
             { id: 51, q: "Toto bathroom equipment has an unrivalled reputation for high quality and design __________. ", options: ["for very keen prices", "for very keen price", "at very keen prices", "at very keened prices"], ans: 2, explanation: "at ... prices (以...的价格)。keen prices 指极具竞争力的低价。" },
             { id: 52, q: "We feel you may be interested in some of our other products and enclose a descriptive booklet __________.", options: ["to your reference", "in your reference", "on your reference", "for your reference"], ans: 3, explanation: "for your reference (供你参考)。" },
             { id: 53, q: "As no direct steamer is available from here to London, the goods will __________ in transit.", options: ["have to be transshipped", "have to been transshipped", "have to transship", "have to being transshipped"], ans: 0, explanation: "have to be transshipped (必须转运)。被动语态。" },
-            { id: 54, q: "The prices are exclusive of the sales tax but __________ delivery to your warehouse and are valid for a month from the date of this letter.", options: ["including", "included", "to include", "include"], ans: 0, explanation: "include/including。此处 prices... include (谓语)。选项A (including) 也常用于商务伴随结构。" },
-            { id: 55, q: "We are enclosing herewith one copy of our Order No.6876 placing an order with you for your electronic products __________ 120,000 pounds.", options: ["with the value totaled", "to the value totaled", "with the value totaling", "as to the value totaling"], ans: 1, explanation: "to the value of/totaling (总价值为...)。" },
+            { id: 54, q: "The prices are exclusive of the sales tax but __________ delivery to your warehouse and are valid for a month from the date of this letter.", options: ["including", "included", "to include", "include"], ans: 0, explanation: "include/including。此处 prices... include (谓语) 或者 but including (分词)。根据句法 prices are exclusive... but include (动词原形与 are 并列不合适，应为prices include)。但这里选项 A. including 作伴随/补充说明更常见于商务语境，或理解为 prices (which are) including... 但标准语法应为 include。根据题目设计，A (including) 常被用作介词。" },
+            { id: 55, q: "We are enclosing herewith one copy of our Order No.6876 placing an order with you for your electronic products __________ 120,000 pounds.", options: ["with the value totaled", "to the value totaled", "with the value totaling", "as to the value totaling"], ans: 1, explanation: "to the value of/totaling (总价值为...)。value 后面接现在分词 totaling。" },
             { id: 56, q: "As we are in urgent need of these products, please __________ the goods immediately.", options: ["have shipment of", "have shipment to", "make shipment of", "make shipment to"], ans: 2, explanation: "make shipment of (装运...)。" },
             { id: 57, q: "Thank you for your Order No.1 for pillowcases and assure you that all the items you required are __________.", options: ["in stocks", "at stocks", "at stock", "in stock"], ans: 3, explanation: "固定短语 'in stock' (有现货)。" }
         ];
 
+        // Part II. Fill in the blanks (6 Sections, 60 Questions)
         const fillBlanksData = [
             {
                 section: "Section A",
@@ -257,6 +236,7 @@
             }
         ];
 
+        // Part III. Translation (14 Questions) - Adjusted
         const translationData = [
             { q: "很高兴收到你关于商务信件格式资料的请求。", a: "I was happy to receive your request for information about business letter formats." },
             { q: "良好的沟通能力是商界成功人士的关键所在。", a: "The ability to communicate well is a key attribute of the successful business executive." },
@@ -274,139 +254,98 @@
             { q: "我们希望贵公司能够接受买方设计和尺寸的订单。", a: "We hoped that you can accept the order in the buyer's design and measurement." }
         ];
 
+        // Part IV. Error Correction (50 Questions) - Added Explanations
         const errorData = [
-            { id: 1, fullSentence: "Your firm has been passed (A) on to us by Maple Company and we wish to inform you our desire (B) to import (C) some of the commodities you handle (D).", errorPart: "inform you our desire", errorLabel: "B", correction: "inform you of our desire", explanation: "inform 是动词，固定搭配为 inform sb of sth（通知某人某事），后面不能直接跟双宾语。" },
-            { id: 2, fullSentence: "We take the liberty (A) of writing to you with a view to (B) build up (C) business relations with your firm (D).", errorPart: "build up", errorLabel: "C", correction: "building up", explanation: "with a view to（目的是/为了）中的 to 是介词，后面必须接动名词（v-ing）形式。" },
-            { id: 3, fullSentence: "We are willing (A) to enter (B) business relations with your firm (C) on the basis of (D) equality and mutual benefit.", errorPart: "enter", errorLabel: "B", correction: "enter into", explanation: "enter into 是固定短语，意为“建立（关系）、缔结（条约）”；enter 单独使用通常表示进入物理空间。" },
-            { id: 4, fullSentence: "Our goods that (A) we offer you are more in favour (B) on the Continent and there is also (C) a growing demand for them (D) in the Far East.", errorPart: "more in favour", errorLabel: "B", correction: "much in favour", explanation: "in favour 是介词短语，表示“受欢迎”。修饰介词短语表示程度深时，应该用 much 而不是 more（more 通常用于形容词比较级）。" },
-            { id: 5, fullSentence: "If any (A) of the item listed (B) in the catalogue meets (C) your interest, please let us have (D) your specific enquiry...", errorPart: "item", errorLabel: "A", correction: "items", explanation: "any of 后面接可数名词时，名词应为复数形式（any of the items）。" },
-            { id: 6, fullSentence: "Your company has (A) kindly recommended (B) to us by (C) Shanghai Chamber of Commerce in establishing (D) business relations with you.", errorPart: "has", errorLabel: "A", correction: "has been kindly recommended", explanation: "主语 Your company 与动词 recommend 之间是被动关系（被推荐），因此需要用被动语态 has been recommended。" },
-            { id: 7, fullSentence: "We are interested (A) in the tiles you advanced (B) in building materials. Therefore, it will be a great help (C) to us if you could send us further informations (D).", errorPart: "informations", errorLabel: "D", correction: "information", explanation: "information 是不可数名词，没有复数形式，不能加 s。" },
-            { id: 8, fullSentence: "We write to introduce (A) ourselves as one of the lead (B) importers of a wide range (C) of washing machines and refrigerators (D).", errorPart: "lead", errorLabel: "B", correction: "leading", explanation: "lead 是动词“领导”，leading 是形容词“主要的、领先的”，此处需要形容词修饰 importers。" },
-            { id: 9, fullSentence: "We have been (A) in business as importers of general (B) merchandise since 1965 and can particularly boast of having vast and wide experience or (C) the business line of bamboo products (D).", errorPart: "or", errorLabel: "C", correction: "in", explanation: "experience in 是固定搭配，表示“在...方面的经验”，此处介词误用为 or。" },
-            { id: 10, fullSentence: "You will find (A) that it possesses many unique feature (B) which definitely place it ahead of (C) its many competitors (D).", errorPart: "unique feature", errorLabel: "B", correction: "unique features", explanation: "many 后面必须接可数名词的复数形式，所以 feature 应改为 features。" },
-            { id: 11, fullSentence: "In order to acquaint us (A) for (B) the material and workmanship of your products, we shall be pleased if you could send us (C) your catalogues, sample books and all necessary information (D).", errorPart: "for", errorLabel: "B", correction: "with", explanation: "acquaint sb with sth 是固定搭配，意为“使某人熟悉/了解某事”。" },
-            { id: 12, fullSentence: "In the meantime (A), we would like you to send us samples (B) of the various materials which (C) the dresses are made (D).", errorPart: "which", errorLabel: "C", correction: "of which", explanation: "be made of 是固定搭配。定语从句中，介词 of 提前，构成 of which the dresses are made。" },
-            { id: 13, fullSentence: "We are interested in the mechanical toys (A) demonstrate (B) at the recent Guangzhou Trade Fair and should be glad (C) to have details of your export terms (D).", errorPart: "demonstrate", errorLabel: "B", correction: "demonstrated", explanation: "toys 与 demonstrate 之间是被动关系（被展示），应使用过去分词 demonstrated 作后置定语。" },
-            { id: 14, fullSentence: "We thank you (A) for your enquiry of 13 October and are pleased to send you our latest classified catalogue (B) and price list for children's clothes that we can supply (C) in stock (D).", errorPart: "in stock", errorLabel: "D", correction: "from", explanation: "supply from stock 是固定商务用语，意为“现货供应/从库存供应”。" },
-            { id: 15, fullSentence: "Our company is (A) a subsidiary of Union Garments and we specialize (B) on (C) the import and export of garments (D).", errorPart: "on", errorLabel: "C", correction: "specialize in", explanation: "specialize in 是固定搭配，意为“专门从事/专营”，介词误用为 on。" },
-            { id: 16, fullSentence: "Please let us know (A) what quantities you are able to deliver in regular intervals (B), quoting (C) your best price f.o.b. Shanghai (D).", errorPart: "in regular intervals", errorLabel: "B", correction: "at regular intervals", explanation: "at regular intervals 是固定搭配，意为“每隔一定时间/定期地”。" },
-            { id: 17, fullSentence: "We are glad to tell you (A) that the caps as (B) enquiring for (C) in your letter of May 2nd can be supplied at (D) $80 a dozen.", errorPart: "as", errorLabel: "B", correction: "as enquired for", explanation: "caps 与 enquire 之间是被动关系，且此处为省略结构（as were enquired for），应使用过去分词 enquired。" },
-            { id: 18, fullSentence: "Your name was given (A) to us by 'China's Foreign Trade Corporations and Organizations', of which (B) we have been doing business (C) for many years (D).", errorPart: "of which", errorLabel: "B", correction: "with which", explanation: "do business with sb 是固定搭配，介词 with 提前，应为 with which。" },
-            { id: 19, fullSentence: "We are enclosing (A) an inquiry note No.248 and looking forward to (B) receive (C) your quotation CFR Chicago inclusive of our commission of 5% at an early date (D).", errorPart: "receive", errorLabel: "C", correction: "to receiving", explanation: "look forward to 中的 to 是介词，后面必须接动名词（v-ing）形式。" },
-            { id: 20, fullSentence: "Also to (A) separate post (B) we are sending you some samples and feel confident (C) that when you have examined them you will agree that the goods are both excellent in quality and reasonable in price (D).", errorPart: "to", errorLabel: "A", correction: "by separate post", explanation: "by separate post 是商务函电固定短语，意为“另封邮寄”。" },
-            { id: 21, fullSentence: "In compliance with (A) your request, we now quote you (B) subject for (C) our confirmation for the following (D).", errorPart: "subject for", errorLabel: "C", correction: "subject to", explanation: "subject to 是固定搭配，意为“以...为准/取决于...”。" },
-            { id: 22, fullSentence: "If you need (A) any further information, please contact with (B) us, and we are ready (C) to answer any (D) of your questions.", errorPart: "contact with", errorLabel: "B", correction: "contact", explanation: "contact 是及物动词，直接接宾语，不需要加介词 with。" },
-            { id: 23, fullSentence: "Before we can accept (A) your order, we require for (B) a down payment of 5% of (C) the total price (D).", errorPart: "require for", errorLabel: "B", correction: "require", explanation: "require 是及物动词，意为“要求/需要”，直接接宾语，不需要加 for。" },
-            { id: 24, fullSentence: "We would suggest (A) in your interest (B) that you place the order (C) with us not delay (D).", errorPart: "not delay", errorLabel: "D", correction: "without", explanation: "without delay 是固定短语，意为“立即/毫不延迟”。not delay 不符合语法结构。" },
-            { id: 25, fullSentence: "We have sent (A) you a price list, together along (B) detailed specifications (C) and packing (D).", errorPart: "together along", errorLabel: "B", correction: "together with", explanation: "together with 是固定搭配，意为“连同...一起”。" },
-            { id: 26, fullSentence: "We thank you for your inquiry of (A) leather jackets, which we offer you as below (B), and hope to be favored (C) with your order (D).", errorPart: "offer you as below", errorLabel: "B", correction: "for which", explanation: "offer sb sth 是双宾语结构，此处是定语从句，先行词 jackets，句子结构应为 we offer you for (the jackets)，介词提前为 for which we offer you..." },
-            { id: 27, fullSentence: "Our offer (A) is firm, subject to (B) your acceptance reach (C) here by the end of (D) this month.", errorPart: "reach", errorLabel: "C", correction: "reaching", explanation: "subject to 是介词短语，后面接名词或动名词。这里 acceptance 是逻辑主语，动作 reach 应变为动名词 reaching。" },
-            { id: 28, fullSentence: "It's obvious (A) that such (B) a grow (C) demand will result in a price increase (D).", errorPart: "grow", errorLabel: "C", correction: "growing demand", explanation: "grow 是动词，修饰名词 demand 应该用形容词形式 growing（增长的）。" },
-            { id: 29, fullSentence: "We hope (A) these prices will be satisfactory to (B) you, and we await for (C) the favor of your order, which shall have our immediate attention (D).", errorPart: "await for", errorLabel: "C", correction: "await", explanation: "await 是及物动词，意为“等候”，相当于 wait for，后面不能再加 for。" },
-            { id: 30, fullSentence: "We feel (A) that your offer is not proper (B) because the price for such material is in the decline (C) at present (D).", errorPart: "in the decline", errorLabel: "C", correction: "on", explanation: "on the decline 是固定短语，意为“在下降/在衰退中”。" },
-            { id: 31, fullSentence: "According with (A) this letter, it is clear (B) that its writer is eager (C) to know the results of the enquiry he made into the commodity on the catalogue (D).", errorPart: "According with", errorLabel: "A", correction: "to", explanation: "According to 是固定搭配，意为“根据/按照”。" },
-            { id: 32, fullSentence: "They are not only (A) as low-priced (B) like (C) the goods of other makers, but they are distinctly (D) superior.", errorPart: "like", errorLabel: "C", correction: "as", explanation: "as...as 是同级比较结构，表示“和...一样”，固定搭配。" },
-            { id: 33, fullSentence: "We would be glad (A) to have the opportunity of supplying (B) any of these goods which would be most (C) suited for (D) your needs.", errorPart: "these", errorLabel: "B", correction: "those", explanation: "those 指代上文提到的同类事物（goods），these 指代不明或不符合语境，通常用 those goods。" },
-            { id: 34, fullSentence: "Since the article (A) you require is not available (B) for supply at present, we should like to recommend (C) some similar one (D) as follows.", errorPart: "similar one", errorLabel: "D", correction: "ones", explanation: "some 后面接可数名词复数，所以 one 应改为 ones。" },
-            { id: 35, fullSentence: "We are sending (A) you a sample book with a price list of our new products, the high quality of that (B), we trust, will induce (C) you to place a trial order (D) with us.", errorPart: "of that", errorLabel: "B", correction: "which", explanation: "非限制性定语从句中，介词后指代物只能用 which，不能用 that。" },
-            { id: 36, fullSentence: "By virtue of (A) its superior quality, this item has met with (B) a warm reception in most European countries. We deem it (C) as your advantage (D) to buy this item for a trial sale...", errorPart: "as your advantage", errorLabel: "C", correction: "to", explanation: "to your advantage 是固定搭配，意为“对你有利”。" },
-            { id: 37, fullSentence: "A fair comparison (A) in quality between our products and that of (B) other suppliers will convince (C) you of the reasonableness (D) of your quotation.", errorPart: "that of", errorLabel: "B", correction: "those", explanation: "products 是复数，比较对象也应是复数，故代词用 those 指代 products。" },
-            { id: 38, fullSentence: "To meet (A) the growing needs of the fast developing (B) market at your end, we are considering (C) establish (D) a representative office in your city.", errorPart: "establish", errorLabel: "D", correction: "establishing", explanation: "consider doing sth 是固定搭配，意为“考虑做某事”。" },
-            { id: 39, fullSentence: "With a view to (A) support (B) our sales, we have specially (C) prepared some samples of our new makes and are sending them to you, under separate cover (D), for your consideration.", errorPart: "support", errorLabel: "A", correction: "supporting", explanation: "with a view to（为了）中的 to 是介词，后接动名词 supporting。" },
-            { id: 40, fullSentence: "It is not (A) our intention to rush (B) you into a decision, but as this article is in great demand, we would advise you to avail yourselves (C) for (D) our offer in your own interest.", errorPart: "for", errorLabel: "D", correction: "of", explanation: "avail oneself of 是固定短语，意为“利用（机会等）”。" },
-            { id: 41, fullSentence: "We are enclosing (A) our Purchase Confirmation No.200469 on duplicate (B) for your signature (C).", errorPart: "on duplicate", errorLabel: "B", correction: "in duplicate", explanation: "in duplicate 是固定商务短语，意为“一式两份”。" },
-            { id: 42, fullSentence: "We are making (A) you the following offer subject to (B) your acceptance reaching us not later for (C) April 20.", errorPart: "not later for", errorLabel: "C", correction: "not later than", explanation: "not later than 是固定短语，意为“不迟于”。" },
-            { id: 43, fullSentence: "Today I've sent (A) you a catalogue in which (B) you will see our range in (C) sanitary wares (D).", errorPart: "range in", errorLabel: "C", correction: "of", explanation: "a range of 是固定搭配，意为“一系列/各种”。" },
-            { id: 44, fullSentence: "Toto bathroom equipment has (A) an unrivalled reputation for high quality (B) and design for (C) very keen prices (D).", errorPart: "for very keen prices", errorLabel: "C", correction: "at very keen prices", explanation: "at a price 是固定搭配，表示“以...的价格”。" },
-            { id: 45, fullSentence: "We feel (A) you may be interested in some of our other products and enclose (B) a descriptive booklet m (C) your reference (D).", errorPart: "m", errorLabel: "C", correction: "for your reference", explanation: "for your reference 是固定短语，意为“供你参考”。" },
-            { id: 46, fullSentence: "As no direct (A) steamer is available from over here (B) to London, the goods will have to (C) be transshipped in transit (D).", errorPart: "over here", errorLabel: "B", correction: "here", explanation: "from here to... 从这里到...，over here 通常指“在这边”，但在 from...to 结构中直接用 here。" },
-            { id: 47, fullSentence: "The prices are exclusive with (A) the sales tax but include (B) delivery to your warehouse (C) and are valid (D) for a month from the date of this letter.", errorPart: "exclusive with", errorLabel: "A", correction: "are exclusive of", explanation: "exclusive of 是固定搭配，意为“不包括.../除去...”。" },
-            { id: 48, fullSentence: "We are enclosing (A) herewith one copy of our Order No.6876 placing (B) an order with you for your electronic products with the value totaled (C) 120,000 pounds (D).", errorPart: "value totaled", errorLabel: "C", correction: "with the value totaling", explanation: "with the value totaling... 是独立主格结构或伴随状语，表示“总价值为...”，totaling 主动形式修饰 value。" },
-            { id: 49, fullSentence: "As we are in urgent (A) need of these products, please make shipment (B) of the good (C) immediately (D).", errorPart: "good", errorLabel: "C", correction: "the goods", explanation: "goods（货物）必须用复数形式。" },
-            { id: 50, fullSentence: "Thank you for your Order No.1 for (A) pillowcases and assure (B) you that all the items you required are at stock (C).", errorPart: "at stock", errorLabel: "C", correction: "in stock", explanation: "in stock 是固定短语，意为“有现货/库存”。" }
+            // Section 1
+            { id: 1, fullSentence: "Your firm has been passed (A) on to us by Maple Company and we wish to inform you our desire (B) to import (C) some of the commodities you handle (D).", errorPart: "inform you our desire", errorLabel: "B", correction: "inform you of our desire", explanation: "固定搭配 'inform sb of sth' (告知某人某事)。" },
+            { id: 2, fullSentence: "We take the liberty (A) of writing to you with a view to (B) build up (C) business relations with your firm (D).", errorPart: "build up", errorLabel: "C", correction: "building up", explanation: "固定搭配 'with a view to doing sth' (目的是/为了)，to 是介词，后接动名词。" },
+            { id: 3, fullSentence: "We are willing (A) to enter (B) business relations with your firm (C) on the basis of (D) equality and mutual benefit.", errorPart: "enter", errorLabel: "B", correction: "enter into", explanation: "固定搭配 'enter into business relations' (建立业务关系)，enter 单独使用通常表示'进入物理空间'。" },
+            { id: 4, fullSentence: "Our goods that (A) we offer you are more in favour (B) on the Continent and there is also (C) a growing demand for them (D) in the Far East.", errorPart: "more in favour", errorLabel: "B", correction: "much in favour", explanation: "'in favour' 是介词短语，修饰它的程度应该用 'much' 而不是比较级 'more' (除非有比较对象)。" },
+            { id: 5, fullSentence: "If any (A) of the item listed (B) in the catalogue meets (C) your interest, please let us have (D) your specific enquiry...", errorPart: "item", errorLabel: "A", correction: "items", explanation: "'any of' 后面接复数名词，即 'any of the items'。" },
+            { id: 6, fullSentence: "Your company has (A) kindly recommended (B) to us by (C) Shanghai Chamber of Commerce in establishing (D) business relations with you.", errorPart: "has", errorLabel: "A", correction: "has been kindly recommended", explanation: "被动语态。公司是'被'推荐给我们的，所以要用 'has been recommended'。" },
+            { id: 7, fullSentence: "We are interested (A) in the tiles you advanced (B) in building materials. Therefore, it will be a great help (C) to us if you could send us further informations (D).", errorPart: "informations", errorLabel: "D", correction: "information", explanation: "'information' 是不可数名词，没有复数形式。" },
+            { id: 8, fullSentence: "We write to introduce (A) ourselves as one of the lead (B) importers of a wide range (C) of washing machines and refrigerators (D).", errorPart: "lead", errorLabel: "B", correction: "leading", explanation: "此处需要形容词修饰 importers，'leading' 意为'主要的/领先的'。" },
+            { id: 9, fullSentence: "We have been (A) in business as importers of general (B) merchandise since 1965 and can particularly boast of having vast and wide experience or (C) the business line of bamboo products (D).", errorPart: "or", errorLabel: "C", correction: "in", explanation: "固定搭配 'experience in...' (在...方面的经验)。" },
+            { id: 10, fullSentence: "You will find (A) that it possesses many unique feature (B) which definitely place it ahead of (C) its many competitors (D).", errorPart: "unique feature", errorLabel: "B", correction: "unique features", explanation: "'many' 修饰复数名词，feature 应改为 features。" },
+            // Section 2
+            { id: 11, fullSentence: "In order to acquaint us (A) for (B) the material and workmanship of your products, we shall be pleased if you could send us (C) your catalogues, sample books and all necessary information (D).", errorPart: "for", errorLabel: "B", correction: "with", explanation: "固定搭配 'acquaint sb with sth' (使某人熟悉/了解某事)。" },
+            { id: 12, fullSentence: "In the meantime (A), we would like you to send us samples (B) of the various materials which (C) the dresses are made (D).", errorPart: "which", errorLabel: "C", correction: "of which", explanation: "定语从句 'be made of' (由...制成)，of 提前，变成 'of which'。" },
+            { id: 13, fullSentence: "We are interested in the mechanical toys (A) demonstrate (B) at the recent Guangzhou Trade Fair and should be glad (C) to have details of your export terms (D).", errorPart: "demonstrate", errorLabel: "B", correction: "demonstrated", explanation: "过去分词作后置定语，修饰 toys，表示'被展示'的玩具。" },
+            { id: 14, fullSentence: "We thank you (A) for your enquiry of 13 October and are pleased to send you our latest classified catalogue (B) and price list for children's clothes that we can supply (C) in stock (D).", errorPart: "in stock", errorLabel: "D", correction: "from", explanation: "固定搭配 'supply from stock' (现货供应)。'in stock' 通常作表语 (are in stock)。" },
+            { id: 15, fullSentence: "Our company is (A) a subsidiary of Union Garments and we specialize (B) on (C) the import and export of garments (D).", errorPart: "on", errorLabel: "C", correction: "specialize in", explanation: "固定搭配 'specialize in' (专营/擅长)。" },
+            { id: 16, fullSentence: "Please let us know (A) what quantities you are able to deliver in regular intervals (B), quoting (C) your best price f.o.b. Shanghai (D).", errorPart: "in regular intervals", errorLabel: "B", correction: "at regular intervals", explanation: "固定搭配 'at regular intervals' (每隔一定时间/定期地)。" },
+            { id: 17, fullSentence: "We are glad to tell you (A) that the caps as (B) enquiring for (C) in your letter of May 2nd can be supplied at (D) $80 a dozen.", errorPart: "as", errorLabel: "B", correction: "as enquired for", explanation: "as 引导的省略句/定语从句，表示'正如...被询价的'，应用被动语态 enquired。" },
+            { id: 18, fullSentence: "Your name was given (A) to us by 'China's Foreign Trade Corporations and Organizations', of which (B) we have been doing business (C) for many years (D).", errorPart: "of which", errorLabel: "B", correction: "with which", explanation: "固定搭配 'do business with sb' (与某人做生意)，介词 with 提前。" },
+            { id: 19, fullSentence: "We are enclosing (A) an inquiry note No.248 and looking forward to (B) receive (C) your quotation CFR Chicago inclusive of our commission of 5% at an early date (D).", errorPart: "receive", errorLabel: "C", correction: "to receiving", explanation: "'look forward to' 中的 to 是介词，后接动名词 receiving。" },
+            { id: 20, fullSentence: "Also to (A) separate post (B) we are sending you some samples and feel confident (C) that when you have examined them you will agree that the goods are both excellent in quality and reasonable in price (D).", errorPart: "to", errorLabel: "A", correction: "by separate post", explanation: "固定搭配 'by separate post' (另封邮寄)。" },
+            // Section 3
+            { id: 21, fullSentence: "In compliance with (A) your request, we now quote you (B) subject for (C) our confirmation for the following (D).", errorPart: "subject for", errorLabel: "C", correction: "subject to", explanation: "固定搭配 'subject to' (以...为准/取决于)。" },
+            { id: 22, fullSentence: "If you need (A) any further information, please contact with (B) us, and we are ready (C) to answer any (D) of your questions.", errorPart: "contact with", errorLabel: "B", correction: "contact", explanation: "'contact' 是及物动词，直接接宾语，不需要 with。" },
+            { id: 23, fullSentence: "Before we can accept (A) your order, we require for (B) a down payment of 5% of (C) the total price (D).", errorPart: "require for", errorLabel: "B", correction: "require", explanation: "'require' 是及物动词，直接接宾语，不需要 for。" },
+            { id: 24, fullSentence: "We would suggest (A) in your interest (B) that you place the order (C) with us not delay (D).", errorPart: "not delay", errorLabel: "D", correction: "without", explanation: "固定搭配 'without delay' (毫不耽搁地/立即)。" },
+            { id: 25, fullSentence: "We have sent (A) you a price list, together along (B) detailed specifications (C) and packing (D).", errorPart: "together along", errorLabel: "B", correction: "together with", explanation: "固定搭配 'together with' (连同/和...一起)。" },
+            { id: 26, fullSentence: "We thank you for your inquiry of (A) leather jackets, which we offer you as below (B), and hope to be favored (C) with your order (D).", errorPart: "offer you as below", errorLabel: "B", correction: "for which", explanation: "原句结构混乱，offer sb sth，这里定语从句修饰 leather jackets，应用 'for which we offer you as below' (针对该产品我们在下面报价)。或理解为 'for which' 引导针对该询盘/产品的报价。" },
+            { id: 27, fullSentence: "Our offer (A) is firm, subject to (B) your acceptance reach (C) here by the end of (D) this month.", errorPart: "reach", errorLabel: "C", correction: "reaching", explanation: "'subject to' 中的 to 是介词，后接动名词 reaching。" },
+            { id: 28, fullSentence: "It's obvious (A) that such (B) a grow (C) demand will result in a price increase (D).", errorPart: "grow", errorLabel: "C", correction: "growing demand", explanation: "此处需要形容词修饰 demand，'growing' 意为'增长的/不断增加的'。" },
+            { id: 29, fullSentence: "We hope (A) these prices will be satisfactory to (B) you, and we await for (C) the favor of your order, which shall have our immediate attention (D).", errorPart: "await for", errorLabel: "C", correction: "await", explanation: "'await' 是及物动词，等于 wait for，不能说 await for。" },
+            { id: 30, fullSentence: "We feel (A) that your offer is not proper (B) because the price for such material is in the decline (C) at present (D).", errorPart: "in the decline", errorLabel: "C", correction: "on", explanation: "固定搭配 'on the decline' (在下降/走下坡路)。" },
+            // Section 4
+            { id: 31, fullSentence: "According with (A) this letter, it is clear (B) that its writer is eager (C) to know the results of the enquiry he made into the commodity on the catalogue (D).", errorPart: "According with", errorLabel: "A", correction: "to", explanation: "固定搭配 'according to' (根据)。" },
+            { id: 32, fullSentence: "They are not only (A) as low-priced (B) like (C) the goods of other makers, but they are distinctly (D) superior.", errorPart: "like", errorLabel: "C", correction: "as", explanation: "同级比较结构 'as... as...'。" },
+            { id: 33, fullSentence: "We would be glad (A) to have the opportunity of supplying (B) any of these goods which would be most (C) suited for (D) your needs.", errorPart: "these", errorLabel: "B", correction: "those", explanation: "这里代指 goods，作为定语从句先行词，且有后置修饰，通常用 'those' (那些) 指代复数名词，而非 these。" },
+            { id: 34, fullSentence: "Since the article (A) you require is not available (B) for supply at present, we should like to recommend (C) some similar one (D) as follows.", errorPart: "similar one", errorLabel: "D", correction: "ones", explanation: "前面用了 some，后面代词 one 应该用复数 ones。" },
+            { id: 35, fullSentence: "We are sending (A) you a sample book with a price list of our new products, the high quality of that (B), we trust, will induce (C) you to place a trial order (D) with us.", errorPart: "of that", errorLabel: "B", correction: "which", explanation: "非限制性定语从句，介词后不能用 that，只能用 which。" },
+            { id: 36, fullSentence: "By virtue of (A) its superior quality, this item has met with (B) a warm reception in most European countries. We deem it (C) as your advantage (D) to buy this item for a trial sale...", errorPart: "as your advantage", errorLabel: "C", correction: "to", explanation: "固定搭配 'to your advantage' (对你有利)。deem it to your advantage。" },
+            { id: 37, fullSentence: "A fair comparison (A) in quality between our products and that of (B) other suppliers will convince (C) you of the reasonableness (D) of your quotation.", errorPart: "that of", errorLabel: "B", correction: "those", explanation: "Products 是复数，比较对象也应该是复数，所以用 those 指代 products。" },
+            { id: 38, fullSentence: "To meet (A) the growing needs of the fast developing (B) market at your end, we are considering (C) establish (D) a representative office in your city.", errorPart: "establish", errorLabel: "D", correction: "establishing", explanation: "consider 后接动名词，'consider doing sth' (考虑做某事)。" },
+            { id: 39, fullSentence: "With a view to (A) support (B) our sales, we have specially (C) prepared some samples of our new makes and are sending them to you, under separate cover (D), for your consideration.", errorPart: "support", errorLabel: "A", correction: "supporting", explanation: "固定搭配 'with a view to doing sth'，to 是介词。" },
+            { id: 40, fullSentence: "It is not (A) our intention to rush (B) you into a decision, but as this article is in great demand, we would advise you to avail yourselves (C) for (D) our offer in your own interest.", errorPart: "for", errorLabel: "D", correction: "of", explanation: "固定搭配 'avail oneself of' (利用)。" },
+            // Section 5
+            { id: 41, fullSentence: "We are enclosing (A) our Purchase Confirmation No.200469 on duplicate (B) for your signature (C).", errorPart: "on duplicate", errorLabel: "B", correction: "in duplicate", explanation: "固定搭配 'in duplicate' (一式两份)。" },
+            { id: 42, fullSentence: "We are making (A) you the following offer subject to (B) your acceptance reaching us not later for (C) April 20.", errorPart: "not later for", errorLabel: "C", correction: "not later than", explanation: "固定搭配 'not later than' (不迟于)。" },
+            { id: 43, fullSentence: "Today I've sent (A) you a catalogue in which (B) you will see our range in (C) sanitary wares (D).", errorPart: "range in", errorLabel: "C", correction: "of", explanation: "固定搭配 'range of products' (产品范围/系列)。" },
+            { id: 44, fullSentence: "Toto bathroom equipment has (A) an unrivalled reputation for high quality (B) and design for (C) very keen prices (D).", errorPart: "for very keen prices", errorLabel: "C", correction: "at very keen prices", explanation: "价格使用介词 at，'at ... prices'。" },
+            { id: 45, fullSentence: "We feel (A) you may be interested in some of our other products and enclose (B) a descriptive booklet m (C) your reference (D).", errorPart: "m", errorLabel: "C", correction: "for your reference", explanation: "固定搭配 'for your reference' (供你参考)。原文'm'可能是打印错误或扫描错误，应为 'for'。" },
+            { id: 46, fullSentence: "As no direct (A) steamer is available from over here (B) to London, the goods will have to (C) be transshipped in transit (D).", errorPart: "over here", errorLabel: "B", correction: "here", explanation: "'from here' 即可，'over here' 口语化且冗余，函电中直接用 'from here to London'。" },
+            { id: 47, fullSentence: "The prices are exclusive with (A) the sales tax but include (B) delivery to your warehouse (C) and are valid (D) for a month from the date of this letter.", errorPart: "exclusive with", errorLabel: "A", correction: "are exclusive of", explanation: "固定搭配 'exclusive of' (不包括...)。" },
+            { id: 48, fullSentence: "We are enclosing (A) herewith one copy of our Order No.6876 placing (B) an order with you for your electronic products with the value totaled (C) 120,000 pounds (D).", errorPart: "value totaled", errorLabel: "C", correction: "with the value totaling", explanation: "value 后接现在分词 totaling 作定语或补语，表示'总计为...'。" },
+            { id: 49, fullSentence: "As we are in urgent (A) need of these products, please make shipment (B) of the good (C) immediately (D).", errorPart: "good", errorLabel: "C", correction: "the goods", explanation: "'goods' (货物) 必须复数。" },
+            { id: 50, fullSentence: "Thank you for your Order No.1 for (A) pillowcases and assure (B) you that all the items you required are at stock (C).", errorPart: "at stock", errorLabel: "C", correction: "in stock", explanation: "固定搭配 'in stock' (有现货)。" }
         ];
 
         // --- COMPONENTS ---
 
         const Header = ({ title, subtitle }) => (
-            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-2 rounded-xl shadow-md">
-                            <GraduationCap size={24} />
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                                +1教你学函电
-                            </h1>
-                            <p className="text-xs text-slate-500 font-medium">期末复习高分助手</p>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <div className="mb-8 text-center animate-fade-in-up">
+                <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">{title}</h1>
+                <div className="h-1 w-20 bg-indigo-50 mx-auto rounded-full mb-3"></div>
+                <p className="text-slate-500 font-medium">{subtitle}</p>
+            </div>
         );
 
-        const MenuCard = ({ icon: Icon, title, desc, color, onClick }) => (
-            <button 
-                onClick={onClick}
-                className="group relative overflow-hidden rounded-3xl bg-white p-8 text-left shadow-lg hover:shadow-xl transition-all duration-300 border border-white hover:-translate-y-1"
-            >
-                <div className={`absolute top-0 right-0 p-8 opacity-5 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 ${color}`}>
-                    <Icon size={140} />
-                </div>
-                
-                <div className="relative z-10">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg ${color} text-white transition-transform duration-300 group-hover:scale-110`}>
-                        <Icon size={28} />
-                    </div>
-                    
-                    <h3 className="text-2xl font-bold text-slate-800 mb-2">{title}</h3>
-                    <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>
-                    
-                    <div className="mt-6 flex items-center text-sm font-bold text-indigo-600 opacity-0 transform translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
-                        开始复习 <ArrowRight size={16} className="ml-1" />
-                    </div>
-                </div>
-            </button>
-        );
-
-        const SectionHeader = ({ title, subtitle, onBack }) => (
-            <div className="mb-8 animate-fade-in-up">
-                <button 
-                    onClick={onBack}
-                    className="mb-6 flex items-center text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm group"
-                >
-                    <ChevronLeft size={16} className="mr-1 group-hover:-translate-x-1 transition-transform" /> 返回主页
-                </button>
-                <div className="text-center">
-                    <h2 className="text-3xl font-extrabold text-slate-900 mb-2">{title}</h2>
-                    <p className="text-slate-500 font-medium">{subtitle}</p>
-                </div>
+        const Card = ({ children, className = "" }) => (
+            <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 p-8 ${className}`}>
+                {children}
             </div>
         );
 
         const Button = ({ onClick, children, variant = "primary", className = "", disabled=false }) => {
+            const baseStyle = "px-5 py-2.5 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 disabled:active:scale-100 disabled:opacity-50 disabled:cursor-not-allowed";
             const variants = {
-                primary: "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:scale-[1.02]",
+                primary: "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:shadow-lg shadow-indigo-200 hover:from-indigo-700 hover:to-indigo-800",
                 secondary: "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm",
-                danger: "bg-red-50 text-red-600 border border-red-100 hover:bg-red-100"
+                outline: "border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50",
+                danger: "bg-red-50 text-red-600 border border-red-100 hover:bg-red-100",
+                success: "bg-green-50 text-green-700 border border-green-200"
             };
-            
             return (
-                <button 
-                    onClick={onClick} 
-                    disabled={disabled} 
-                    className={`px-6 py-3 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${variants[variant]} ${className}`}
-                >
+                <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
                     {children}
                 </button>
             );
         };
 
-        // --- Feature Components ---
-
-        const MCQSection = ({ data, addToMistakes, onBack }) => {
+        const MCQSection = ({ data, addToMistakes }) => {
             const [currentIndex, setCurrentIndex] = useState(0);
             const [selected, setSelected] = useState(null);
             const [showResult, setShowResult] = useState(false);
@@ -418,16 +357,21 @@
             }, [data]);
 
             if (shuffledQuestions.length === 0) return null;
+
             const question = shuffledQuestions[currentIndex];
 
             const handleSelect = (idx) => {
                 if (showResult) return;
                 setSelected(idx);
                 setShowResult(true);
-                if (idx === question.ans) {
+                
+                const isCorrect = idx === question.ans;
+                if (isCorrect) {
                     setScore(s => s + 1);
                     setTimeout(() => {
-                        if (currentIndex < shuffledQuestions.length - 1) next();
+                        if (currentIndex < shuffledQuestions.length - 1) {
+                            next();
+                        }
                     }, 1200);
                 } else {
                     addToMistakes({ type: 'mcq', id: question.id, q: question, userAnswer: idx });
@@ -450,110 +394,141 @@
                 }
             };
 
+            const reset = () => {
+                setShuffledQuestions(shuffleArray(data));
+                setCurrentIndex(0);
+                setScore(0);
+                setSelected(null);
+                setShowResult(false);
+            };
+
             return (
-                <div className="max-w-3xl mx-auto px-4">
-                    <SectionHeader title="Part I: 单项选择" subtitle="57道核心考题，含智能解析" onBack={onBack} />
-                    
+                <div className="max-w-3xl mx-auto">
                     <div className="flex justify-between items-center mb-6 px-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Question {currentIndex + 1} / {shuffledQuestions.length}</span>
-                        <div className="flex items-center gap-2 bg-white px-4 py-1.5 rounded-full shadow-sm border border-slate-100">
-                            <Star size={14} className="text-yellow-400 fill-yellow-400"/>
-                            <span className="text-sm font-bold text-slate-700">{score}</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Question {currentIndex + 1} of {shuffledQuestions.length}</span>
+                        <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1 rounded-full">
+                            <Star size={14} className="text-indigo-600 fill-indigo-600"/>
+                            <span className="text-sm font-bold text-indigo-900">{score}</span>
+                            <span className="text-xs text-indigo-400 ml-1 flex items-center"><ShuffleIcon size={10} className="mr-0.5"/> 随机</span>
                         </div>
                     </div>
                     
-                    <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white p-8 mb-8 relative overflow-hidden animate-fade-in-up">
-                        <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none"><CheckCircle size={100}/></div>
-                        <p className="text-xl text-slate-800 font-medium leading-relaxed mb-8 relative z-10">{question.q}</p>
-                        
-                        <div className="space-y-3 relative z-10">
+                    <Card className="mb-8 hover:shadow-md transition-shadow duration-300">
+                        <p className="text-xl text-slate-800 font-medium leading-relaxed mb-8">{question.q}</p>
+                        <div className="space-y-4">
                             {question.options.map((opt, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => handleSelect(idx)}
                                     disabled={showResult}
-                                    className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center group
+                                    className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 group relative overflow-hidden
                                         ${showResult 
                                             ? idx === question.ans 
                                                 ? "border-green-500 bg-green-50 text-green-900"
                                                 : idx === selected 
                                                     ? "border-red-500 bg-red-50 text-red-900"
                                                     : "border-slate-100 text-slate-400 opacity-60"
-                                            : "border-slate-100 hover:border-indigo-200 hover:bg-slate-50 text-slate-600"
+                                            : "border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 text-slate-700 hover:shadow-sm"
                                         }
                                     `}
                                 >
-                                    <span className={`w-8 h-8 flex flex-shrink-0 items-center justify-center rounded-lg mr-4 text-sm font-bold transition-colors
-                                        ${showResult
-                                            ? idx === question.ans ? "bg-green-200 text-green-800" : idx === selected ? "bg-red-200 text-red-800" : "bg-slate-200 text-slate-500"
-                                            : "bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-indigo-600 group-hover:shadow-sm"
-                                        }
-                                    `}>
-                                        {String.fromCharCode(65 + idx)}
-                                    </span>
-                                    <span className="font-medium">{opt}</span>
-                                    {showResult && idx === question.ans && <CheckCircle className="ml-auto text-green-600" size={20}/>}
-                                    {showResult && idx === selected && idx !== question.ans && <XCircle className="ml-auto text-red-600" size={20}/>}
+                                    <div className="flex items-center z-10 relative">
+                                        <span className={`w-8 h-8 flex flex-shrink-0 items-center justify-center rounded-lg mr-4 text-sm font-bold transition-colors
+                                            ${showResult
+                                                ? idx === question.ans ? "bg-green-200 text-green-800" : idx === selected ? "bg-red-200 text-red-800" : "bg-slate-100 text-slate-500"
+                                                : "bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-indigo-600"
+                                            }
+                                        `}>
+                                            {String.fromCharCode(65 + idx)}
+                                        </span>
+                                        <span className="font-medium">{opt}</span>
+                                        {showResult && idx === question.ans && <CheckCircle className="ml-auto text-green-600" size={20}/>}
+                                        {showResult && idx === selected && idx !== question.ans && <XCircle className="ml-auto text-red-600" size={20}/>}
+                                    </div>
                                 </button>
                             ))}
                         </div>
 
                         {showResult && (
-                            <div className="mt-8 p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100 animate-fade-in-up">
-                                <div className="flex gap-3">
-                                    <div className="bg-indigo-100 p-2 rounded-lg h-fit text-indigo-600"><HelpCircle size={20} /></div>
+                            <div className="mt-8 p-6 bg-blue-50/50 border border-blue-100 rounded-xl animate-fade-in-up">
+                                <div className="flex items-start gap-3">
+                                    <div className="bg-blue-100 p-2 rounded-lg">
+                                        <HelpCircle className="text-blue-600" size={20} />
+                                    </div>
                                     <div>
-                                        <h4 className="font-bold text-indigo-900 text-sm mb-1">名师解析</h4>
-                                        <p className="text-slate-600 text-sm leading-relaxed">{question.explanation}</p>
+                                        <h4 className="font-bold text-blue-900 text-sm mb-1 uppercase tracking-wide">解析</h4>
+                                        <p className="text-slate-700 leading-relaxed">{question.explanation || "参见标准答案。"}</p>
                                     </div>
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </Card>
 
-                    <div className="flex justify-between items-center pb-12">
+                    <div className="flex justify-between items-center">
                         <Button variant="secondary" onClick={prev} disabled={currentIndex === 0}><ChevronLeft size={18}/> 上一题</Button>
-                        <Button onClick={next} disabled={!showResult || currentIndex === shuffledQuestions.length - 1}>下一题 <ChevronRight size={18}/></Button>
+                        <Button onClick={next} disabled={!showResult || currentIndex === shuffledQuestions.length - 1}>
+                            下一题 <ChevronRight size={18}/>
+                        </Button>
                     </div>
                 </div>
             );
         };
 
-        const FillBlanksSection = ({ data, onBack }) => {
+        const FillBlanksSection = ({ data }) => {
             const [sectionIndex, setSectionIndex] = useState(0);
             const currentSection = data[sectionIndex];
+            
             const [selectedWord, setSelectedWord] = useState(null);
             const [userAnswers, setUserAnswers] = useState({});
             const [isChecked, setIsChecked] = useState(false);
 
-            useEffect(() => { setUserAnswers({}); setIsChecked(false); setSelectedWord(null); }, [sectionIndex]);
-
             const handleWordBankClick = (word) => {
-                if (isChecked || Object.values(userAnswers).includes(word)) return;
+                if (isChecked) return;
+                if (Object.values(userAnswers).includes(word)) return;
                 setSelectedWord(word === selectedWord ? null : word);
             };
 
-            const handleBlankClick = (idx) => {
+            const handleBlankClick = (questionIndex) => {
                 if (isChecked) return;
+                
                 if (selectedWord) {
-                    setUserAnswers(prev => ({ ...prev, [idx]: selectedWord }));
+                    setUserAnswers(prev => ({ ...prev, [questionIndex]: selectedWord }));
                     setSelectedWord(null);
-                } else if (userAnswers[idx]) {
-                    setUserAnswers(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                } else if (userAnswers[questionIndex]) {
+                    setUserAnswers(prev => {
+                        const newState = { ...prev };
+                        delete newState[questionIndex];
+                        return newState;
+                    });
                 }
             };
 
+            const checkAnswers = () => {
+                setIsChecked(true);
+                setSelectedWord(null);
+            };
+
+            const resetSection = () => {
+                setUserAnswers({});
+                setIsChecked(false);
+                setSelectedWord(null);
+            };
+
+            useEffect(() => {
+                resetSection();
+            }, [sectionIndex]);
+
             return (
-                <div className="max-w-5xl mx-auto px-4">
-                    <SectionHeader title="Part II: 选词填空" subtitle="六大Section，交互式填词体验" onBack={onBack} />
-                    
+                <div className="max-w-5xl mx-auto">
                     <div className="flex justify-center mb-8">
-                        <div className="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 overflow-x-auto no-scrollbar">
+                        <div className="flex gap-1 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto no-scrollbar">
                             {data.map((sec, idx) => (
                                 <button 
-                                    key={idx} 
+                                    key={idx}
                                     onClick={() => setSectionIndex(idx)}
-                                    className={`px-6 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${sectionIndex === idx ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200
+                                        ${sectionIndex === idx ? 'bg-indigo-100 text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}
+                                    `}
                                 >
                                     {sec.section}
                                 </button>
@@ -561,43 +536,86 @@
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         <div className="lg:col-span-4 lg:sticky lg:top-28">
-                            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white p-6">
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><MousePointerClick size={14}/> 词库 Word Bank</h3>
+                            <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 transition-colors ${isChecked ? 'opacity-60 grayscale' : ''}`}>
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <MousePointerClick size={14}/> 词库 Word Bank
+                                </h3>
                                 <div className="flex flex-wrap gap-2 mb-6">
                                     {currentSection.words.map((w, i) => {
                                         const isUsed = Object.values(userAnswers).includes(w);
                                         const isSelected = selectedWord === w;
+                                        
                                         return (
-                                            <button key={i} disabled={isUsed || isChecked} onClick={() => handleWordBankClick(w)} className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left border ${isUsed ? 'bg-slate-50 text-slate-300 border-transparent cursor-not-allowed decoration-slate-300 line-through' : isSelected ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105' : 'bg-slate-50 text-slate-600 border-slate-100 hover:border-indigo-300 hover:text-indigo-600'}`}>{w}</button>
+                                            <button 
+                                                key={i}
+                                                disabled={isUsed || isChecked}
+                                                onClick={() => handleWordBankClick(w)}
+                                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left border
+                                                    ${isUsed 
+                                                        ? 'bg-slate-100 text-slate-300 border-transparent cursor-not-allowed decoration-slate-300 line-through' 
+                                                        : isSelected
+                                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105'
+                                                            : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                                    }
+                                                `}
+                                            >
+                                                {w}
+                                            </button>
                                         );
                                     })}
                                 </div>
-                                <div className="space-y-3">
+                                
+                                <div className="flex flex-col gap-3">
                                     {!isChecked ? (
-                                        <Button onClick={() => { setIsChecked(true); setSelectedWord(null); }} disabled={Object.keys(userAnswers).length === 0} className="w-full"><Check size={18}/> 提交检查</Button>
+                                        <Button onClick={checkAnswers} disabled={Object.keys(userAnswers).length === 0} className="w-full">
+                                            <Check size={18}/> 提交检查
+                                        </Button>
                                     ) : (
-                                        <Button onClick={() => { setUserAnswers({}); setIsChecked(false); }} variant="secondary" className="w-full"><RefreshCw size={18}/> 重置本节</Button>
+                                        <Button onClick={resetSection} variant="secondary" className="w-full">
+                                            <RefreshCw size={18}/> 重置本节
+                                        </Button>
                                     )}
                                 </div>
+                                {!isChecked && <p className="text-center text-xs text-slate-400 mt-3">点击单词 &rarr; 点击空格</p>}
                             </div>
                         </div>
 
                         <div className="lg:col-span-8 space-y-4">
                             {currentSection.questions.map((item, idx) => {
-                                const ans = userAnswers[idx];
-                                const isCorrect = ans === item.a;
+                                const userAnswer = userAnswers[idx];
+                                const isCorrect = userAnswer === item.a;
                                 const parts = item.q.split('______');
+                                
                                 return (
-                                    <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm leading-8 text-lg hover:border-indigo-100 transition-colors animate-fade-in-up" style={{animationDelay: `${idx * 50}ms`}}>
+                                    <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm leading-8 text-lg hover:border-indigo-100 transition-colors">
                                         <span className="font-bold text-slate-300 mr-4 select-none">{idx + 1}</span>
                                         {parts[0]}
-                                        <span onClick={() => handleBlankClick(idx)} className={`inline-flex items-center justify-center min-w-[120px] px-3 py-1 mx-2 border-b-2 text-center cursor-pointer font-bold transition-all select-none rounded-t-md ${isChecked ? (isCorrect ? "border-green-500 text-green-700 bg-green-50" : "border-red-500 text-red-700 bg-red-50") : (ans ? "border-indigo-500 text-indigo-700 bg-indigo-50" : selectedWord ? "border-indigo-300 bg-yellow-50 animate-pulse shadow-[0_0_10px_rgba(250,204,21,0.3)]" : "border-slate-300 bg-slate-50 hover:bg-slate-100 text-transparent")}`}>
-                                            {ans || (isChecked ? "___" : "点击填入")}
+                                        <span 
+                                            onClick={() => handleBlankClick(idx)}
+                                            className={`inline-flex items-center justify-center min-w-[120px] px-3 py-1 mx-2 border-b-2 text-center cursor-pointer font-bold transition-all select-none rounded-t-md
+                                                ${isChecked 
+                                                    ? isCorrect 
+                                                        ? "border-green-500 text-green-700 bg-green-50/50"
+                                                        : "border-red-500 text-red-700 bg-red-50/50"
+                                                    : userAnswer 
+                                                        ? "border-indigo-500 text-indigo-700 bg-indigo-50/30" 
+                                                        : selectedWord
+                                                            ? "border-indigo-300 bg-yellow-50 animate-pulse shadow-[0_0_10px_rgba(250,204,21,0.3)]"
+                                                            : "border-slate-300 bg-slate-50 hover:bg-slate-100 text-transparent"
+                                                }
+                                            `}
+                                        >
+                                            {userAnswer || (isChecked ? "___" : "点击填入")}
                                         </span>
                                         {parts[1]}
-                                        {isChecked && !isCorrect && <div className="mt-3 text-sm flex items-center gap-2 text-green-700 bg-green-50 px-3 py-1.5 rounded-lg w-fit"><CheckCircle size={14}/> 正确答案: <strong>{item.a}</strong></div>}
+                                        
+                                        {isChecked && !isCorrect && (
+                                            <div className="mt-3 text-sm flex items-center gap-2 text-green-700 bg-green-50 px-3 py-1.5 rounded-lg w-fit animate-fade-in-up">
+                                                <CheckCircle size={14}/> 正确答案: <strong>{item.a}</strong>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -607,183 +625,330 @@
             );
         };
 
-        const TranslationSection = ({ data, addToMistakes, onBack }) => {
+        const TranslationSection = ({ data, addToMistakes }) => {
             const [index, setIndex] = useState(0);
-            const [shuffledData, setShuffledData] = useState([]);
-            const [mode, setSubMode] = useState('flip');
             const [flipped, setFlipped] = useState(false);
+            const [mode, setMode] = useState('practice'); // 'card' or 'practice'
+            const [shuffledData, setShuffledData] = useState([]);
+            
+            // Practice Mode State
             const [availableWords, setAvailableWords] = useState([]);
-            const [userSentence, setUserSentence] = useState([]);
-            const [assembleStatus, setAssembleStatus] = useState('idle');
-
-            useEffect(() => { setShuffledData(shuffleArray(data)); }, [data]);
+            const [selectedWords, setSelectedWords] = useState([]);
+            const [practiceStatus, setPracticeStatus] = useState('idle'); // idle, correct, wrong
+            // 新增：是否显示答案的状态
+            const [showAnswer, setShowAnswer] = useState(false);
 
             useEffect(() => {
-                if (mode === 'assemble' && shuffledData.length > 0) {
+                setShuffledData(shuffleArray(data));
+            }, [data]);
+
+            // Init practice words when question changes
+            useEffect(() => {
+                if (shuffledData.length > 0) {
                     const current = shuffledData[index];
-                    const words = current.a.split(' ').map((w, i) => ({ id: i, text: w.trim() }));
+                    const words = current.a.split(' ').map((w, i) => ({ id: i, text: w }));
                     setAvailableWords(shuffleArray(words));
-                    setUserSentence([]);
-                    setAssembleStatus('idle');
+                    setSelectedWords([]);
+                    setPracticeStatus('idle');
+                    setShowAnswer(false); // 重置显示答案状态
                 }
-            }, [mode, index, shuffledData]);
+            }, [index, shuffledData]);
 
             if (shuffledData.length === 0) return null;
-            const current = shuffledData[index];
 
             const next = () => {
                 setFlipped(false);
-                setAssembleStatus('idle');
+                setPracticeStatus('idle');
+                setShowAnswer(false); // 重置
                 setTimeout(() => setIndex(i => (i + 1) % shuffledData.length), 300);
             };
 
             const prev = () => {
                 setFlipped(false);
-                setAssembleStatus('idle');
+                setPracticeStatus('idle');
+                setShowAnswer(false); // 重置
                 setTimeout(() => {
-                    if (index > 0) setIndex(i => i - 1);
-                    else setIndex(shuffledData.length - 1);
+                    if (index > 0) {
+                        setIndex(i => i - 1);
+                    } else {
+                        setIndex(shuffledData.length - 1);
+                    }
                 }, 300);
             };
 
-            const selectWord = (wordObj) => {
-                if (assembleStatus === 'correct') return;
-                setAvailableWords(prev => prev.filter(w => w.id !== wordObj.id));
-                setUserSentence(prev => [...prev, wordObj]);
-                setAssembleStatus('idle');
+            const resetShuffle = () => {
+                setShuffledData(shuffleArray(data));
+                setIndex(0);
+                setFlipped(false);
+                setShowAnswer(false);
+            }
+
+            const handleWordClick = (word, from) => {
+                if (practiceStatus === 'correct') return;
+
+                // 用户操作时，隐藏答案并重置状态，鼓励用户自己尝试
+                setShowAnswer(false);
+                setPracticeStatus('idle');
+
+                if (from === 'available') {
+                    setAvailableWords(prev => prev.filter(w => w.id !== word.id));
+                    setSelectedWords(prev => [...prev, word]);
+                } else {
+                    setSelectedWords(prev => prev.filter(w => w.id !== word.id));
+                    setAvailableWords(prev => [...prev, word]);
+                }
             };
 
-            const removeWord = (wordObj) => {
-                if (assembleStatus === 'correct') return;
-                setUserSentence(prev => prev.filter(w => w.id !== wordObj.id));
-                setAvailableWords(prev => [...prev, wordObj]);
-                setAssembleStatus('idle');
+            const checkPracticeAnswer = () => {
+                const currentAnswer = selectedWords.map(w => w.text).join(' ');
+                const targetAnswer = shuffledData[index].a;
+                
+                // Remove extra spaces if any
+                if (currentAnswer.trim() === targetAnswer.trim()) {
+                    setPracticeStatus('correct');
+                    // Auto advance
+                    setTimeout(() => {
+                        next();
+                    }, 1500);
+                } else {
+                    setPracticeStatus('wrong');
+                    // Add to mistakes on wrong attempt
+                    addToMistakes({ type: 'trans', id: shuffledData[index].q, q: shuffledData[index] });
+                }
             };
 
-            const checkAssembly = () => {
-                const userString = userSentence.map(w => w.text).join(' ');
-                if (userString === current.a || userString + '.' === current.a || userString === current.a + '.') setAssembleStatus('correct');
-                else setAssembleStatus('wrong');
-            };
-
-            const resetAssembly = () => {
-                const words = current.a.split(' ').map((w, i) => ({ id: i, text: w.trim() }));
-                setAvailableWords(shuffleArray(words));
-                setUserSentence([]);
-                setAssembleStatus('idle');
-            };
+            const current = shuffledData[index];
 
             return (
-                <div className="max-w-3xl mx-auto px-4 min-h-[80vh] flex flex-col">
-                    <SectionHeader title="Part III: 汉译英" subtitle="14道精选真题，双模式记忆" onBack={onBack} />
-                    
-                    <div className="flex justify-between items-center mb-6 px-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Card {index + 1} / {shuffledData.length}</span>
-                        <div className="bg-slate-100 p-1 rounded-lg flex gap-1">
-                            <button onClick={() => setSubMode('flip')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'flip' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>翻卡模式</button>
-                            <button onClick={() => setSubMode('assemble')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'assemble' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>拼句模式</button>
+                <div className="max-w-3xl mx-auto min-h-[60vh] flex flex-col justify-start pt-4">
+                    <div className="flex justify-between items-center mb-6 px-4">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Question {index + 1} / {shuffledData.length}</span>
+                        <div className="flex items-center gap-2">
+                             <div className="flex bg-white p-1 rounded-lg border border-slate-200 mr-2">
+                                <button 
+                                    onClick={() => setMode('card')}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors ${mode === 'card' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    <Layout size={14}/> 翻卡模式
+                                </button>
+                                <button 
+                                    onClick={() => setMode('practice')}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors ${mode === 'practice' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    <Puzzle size={14}/> 拼句练习
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-2 bg-indigo-50 px-3 py-2 rounded-lg text-indigo-500 text-xs font-bold cursor-pointer hover:bg-indigo-100 transition-colors" onClick={resetShuffle} title="重新洗牌">
+                                <ShuffleIcon size={14}/>
+                            </div>
                         </div>
                     </div>
-                    
-                    {mode === 'flip' ? (
-                        <div onClick={() => setFlipped(!flipped)} className="cursor-pointer relative w-full aspect-[16/9] transition-all duration-700 transform-style-3d group">
-                            <div className={`absolute inset-0 bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-slate-200/50 border border-white flex flex-col items-center justify-center text-center backface-hidden transition-all ${flipped ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-6 font-bold text-lg">中</div>
-                                <h3 className="text-2xl md:text-3xl font-bold text-slate-800 leading-normal">{current.q}</h3>
-                                <p className="absolute bottom-8 text-slate-400 text-sm font-medium flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full"><MousePointerClick size={14}/> 点击翻看英文</p>
-                            </div>
-                            <div className={`absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 p-8 md:p-12 rounded-3xl shadow-xl flex flex-col items-center justify-center text-center backface-hidden text-white ${flipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} style={{ transform: 'rotateY(180deg)' }}>
-                                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6 font-bold text-lg">En</div>
-                                <h3 className="text-xl md:text-2xl font-medium leading-relaxed">{current.a}</h3>
+
+                    {mode === 'card' ? (
+                        <div className="perspective-1000 w-full mb-8">
+                            <div 
+                                onClick={() => setFlipped(!flipped)}
+                                className="cursor-pointer relative w-full aspect-[4/3] md:aspect-[16/9] transition-all duration-700 transform-style-3d group"
+                                style={{ transform: flipped ? 'rotateY(180deg)' : 'rotateY(0)' }}
+                            >
+                                <div 
+                                    className={`absolute inset-0 bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center justify-center text-center backface-hidden group-hover:shadow-2xl transition-shadow
+                                        ${flipped ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+                                    `}
+                                >
+                                    <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
+                                        <span className="text-xl font-bold text-indigo-600">中</span>
+                                    </div>
+                                    <h3 className="text-2xl md:text-3xl font-bold text-slate-800 leading-normal">{current.q}</h3>
+                                    <p className="absolute bottom-8 text-slate-400 text-sm font-medium flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full">
+                                        <MousePointerClick size={14}/> 点击翻看英文
+                                    </p>
+                                </div>
+
+                                <div 
+                                    className={`absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 p-8 md:p-12 rounded-3xl shadow-xl flex flex-col items-center justify-center text-center backface-hidden text-white
+                                        ${flipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+                                    `}
+                                    style={{ transform: 'rotateY(180deg)' }}
+                                >
+                                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm">
+                                        <span className="text-xl font-bold text-white">En</span>
+                                    </div>
+                                    <h3 className="text-xl md:text-2xl font-medium leading-relaxed">{current.a}</h3>
+                                </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white p-8 flex flex-col min-h-[450px]">
-                            <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">{current.q}</h3>
-                            <div className={`flex-grow border-2 rounded-2xl p-6 mb-6 flex flex-wrap gap-2 content-start transition-colors min-h-[120px] ${assembleStatus === 'correct' ? 'border-green-400 bg-green-50' : assembleStatus === 'wrong' ? 'border-red-300 bg-red-50' : 'border-slate-100 bg-slate-50'}`}>
-                                {userSentence.length === 0 && <span className="text-slate-400 text-sm select-none w-full text-center mt-8">点击下方单词组成句子...</span>}
-                                {userSentence.map((w) => (
-                                    <button key={w.id} onClick={() => removeWord(w)} className="bg-white border border-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg shadow-sm hover:text-red-500 transition-all font-medium text-sm animate-fade-in">{w.text}</button>
-                                ))}
-                            </div>
-                            {assembleStatus !== 'idle' && (
-                                <div className={`text-center mb-6 p-4 rounded-xl ${assembleStatus === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} animate-fade-in-up`}>
-                                    <p className="font-bold text-lg mb-1">{assembleStatus === 'correct' ? "🎉 回答正确！Excellent!" : "❌ 顺序不对"}</p>
-                                    {assembleStatus === 'wrong' && <p className="text-sm mt-1">正确答案：<span className="font-bold select-all">{current.a}</span></p>}
+                        <div className="w-full mb-8 animate-fade-in">
+                            <Card className="min-h-[400px] flex flex-col">
+                                <div className="mb-8 p-4 bg-indigo-50 rounded-xl border border-indigo-100 text-center">
+                                    <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest block mb-2">Translate this</span>
+                                    <h3 className="text-xl font-bold text-slate-800">{current.q}</h3>
                                 </div>
-                            )}
-                            <div className="flex flex-wrap gap-2 justify-center mb-8">
-                                {availableWords.map((w) => (
-                                    <button key={w.id} onClick={() => selectWord(w)} className="bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg shadow-sm hover:border-indigo-400 hover:text-indigo-600 transition-all text-sm">{w.text}</button>
-                                ))}
-                            </div>
-                            <div className="flex justify-center gap-4 mt-auto">
-                                <Button onClick={checkAssembly} disabled={userSentence.length === 0 || assembleStatus === 'correct'}>检查 Check</Button>
-                                <Button variant="secondary" onClick={resetAssembly}><RefreshCw size={16}/> 重置</Button>
-                            </div>
+
+                                {/* Answer Area */}
+                                <div className={`min-h-[80px] p-4 rounded-xl border-2 mb-6 flex flex-wrap gap-2 items-center transition-colors
+                                    ${practiceStatus === 'correct' ? 'border-green-500 bg-green-50' : 
+                                      practiceStatus === 'wrong' ? 'border-red-500 bg-red-50' : 'border-slate-200 bg-slate-50'}
+                                `}>
+                                    {selectedWords.length === 0 && practiceStatus === 'idle' && (
+                                        <span className="text-slate-400 text-sm italic w-full text-center select-none">点击下方单词组成句子...</span>
+                                    )}
+                                    {selectedWords.map((word) => (
+                                        <button
+                                            key={word.id}
+                                            onClick={() => handleWordClick(word, 'selected')}
+                                            className="px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg text-slate-700 font-medium hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-all animate-fade-in"
+                                        >
+                                            {word.text}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Word Bank */}
+                                <div className="flex flex-wrap gap-2 justify-center mb-8">
+                                    {availableWords.map((word) => (
+                                        <button
+                                            key={word.id}
+                                            onClick={() => handleWordClick(word, 'available')}
+                                            className="px-4 py-2 bg-white border border-slate-200 shadow-sm rounded-lg text-slate-700 font-medium hover:border-indigo-500 hover:text-indigo-600 hover:-translate-y-0.5 transition-all"
+                                        >
+                                            {word.text}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="mt-auto flex flex-col gap-4">
+                                    <div className="flex justify-between items-center w-full">
+                                        <div className="h-8 flex items-center">
+                                            {practiceStatus === 'correct' && (
+                                                <div className="flex items-center gap-2 text-green-600 font-bold animate-fade-in-up">
+                                                    <CheckCircle size={20}/> 完美正确! 跳转中...
+                                                </div>
+                                            )}
+                                            {practiceStatus === 'wrong' && (
+                                                <div className="flex items-center gap-2 text-red-600 font-bold animate-shake">
+                                                    <XCircle size={20}/> 顺序不对，请重试
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            {practiceStatus === 'wrong' && !showAnswer && (
+                                                <Button variant="danger" onClick={() => setShowAnswer(true)} className="px-3">
+                                                    <HelpCircle size={18} className="mr-1"/> 看答案
+                                                </Button>
+                                            )}
+                                            <Button onClick={checkPracticeAnswer} disabled={selectedWords.length === 0 || practiceStatus === 'correct'}>
+                                                检查答案
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {showAnswer && (
+                                        <div className="w-full bg-indigo-50 border border-indigo-200 text-indigo-900 p-4 rounded-xl text-center font-bold text-lg animate-fade-in">
+                                            {current.a}
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
                         </div>
                     )}
 
-                    <div className="flex justify-between mt-8 items-center px-2 pb-12">
+                    <div className="flex justify-between gap-4">
                         <Button variant="secondary" onClick={prev}><ChevronLeft size={18}/> 上一题</Button>
-                        <button onClick={() => addToMistakes({ type: 'trans', id: current.q, q: current })} className="flex items-center gap-2 bg-yellow-50 hover:bg-yellow-100 px-4 py-2 rounded-full text-yellow-600 text-sm font-bold transition-colors">
-                            <Bookmark size={14} className="fill-current"/> 加入错题本
-                        </button>
-                        <Button onClick={next}>下一题 <ChevronRight size={18}/></Button>
+                        <Button variant="secondary" onClick={next} className="px-8">
+                            跳过 / 下一题 <ArrowRight size={18}/>
+                        </Button>
                     </div>
                 </div>
             );
         };
 
-        const ErrorCorrectionSection = ({ data, addToMistakes, onBack }) => {
+        const ErrorCorrectionSection = ({ data, addToMistakes }) => {
             const [index, setIndex] = useState(0);
             const [userInput, setUserInput] = useState("");
             const [status, setStatus] = useState("idle");
             const [shuffledQuestions, setShuffledQuestions] = useState([]);
 
-            useEffect(() => { setShuffledQuestions(shuffleArray(data)); }, [data]);
+            useEffect(() => {
+                setShuffledQuestions(shuffleArray(data));
+            }, [data]);
+
             if (shuffledQuestions.length === 0) return null;
+
             const current = shuffledQuestions[index];
 
             const handleCheck = () => {
-                const normUser = userInput.trim().toLowerCase().replace(/\s+/g, ' ');
-                const normCorrect = current.correction.trim().toLowerCase().replace(/\s+/g, ' ');
-                if (normUser === normCorrect || normUser.includes(normCorrect)) {
+                const normalizedUser = userInput.trim().toLowerCase().replace(/\s+/g, ' ');
+                const normalizedCorrect = current.correction.trim().toLowerCase().replace(/\s+/g, ' ');
+                
+                if (normalizedUser === normalizedCorrect || normalizedUser.includes(normalizedCorrect)) {
                     setStatus("correct");
-                    setTimeout(() => { if (index < shuffledQuestions.length - 1) next(); }, 2000);
+                    // Auto advance after correct
+                    setTimeout(() => {
+                        if (index < shuffledQuestions.length - 1) {
+                            next();
+                        }
+                    }, 2500); // Wait a bit longer so they can read explanation
                 } else {
                     setStatus("wrong");
-                    addToMistakes({ type: 'error', id: current.id, q: current, userAnswer: userInput });
+                    // Auto-add to mistakes
+                    addToMistakes({
+                        type: 'error',
+                        id: current.id,
+                        q: current,
+                        userAnswer: userInput
+                    });
                 }
             };
 
-            const next = () => { if (index < shuffledQuestions.length - 1) { setIndex(i => i + 1); setUserInput(""); setStatus("idle"); } };
-            const prev = () => { if (index > 0) { setIndex(i => i - 1); setUserInput(""); setStatus("idle"); } };
+            const next = () => {
+                if (index < shuffledQuestions.length - 1) {
+                    setIndex(i => i + 1);
+                    setUserInput("");
+                    setStatus("idle");
+                }
+            };
+
+            const prev = () => {
+                if (index > 0) {
+                    setIndex(i => i - 1);
+                    setUserInput("");
+                    setStatus("idle");
+                }
+            };
 
             return (
-                <div className="max-w-3xl mx-auto px-4">
-                    <SectionHeader title="Part IV: 改错题" subtitle="模拟真实考试，含详细解析" onBack={onBack} />
+                <div className="max-w-3xl mx-auto">
                     <div className="flex justify-between items-center mb-6 px-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Question {index + 1} / {shuffledQuestions.length}</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Question {index + 1} of {shuffledQuestions.length}</span>
+                        <div className="text-xs text-indigo-400 flex items-center bg-indigo-50 px-2 py-1 rounded"><ShuffleIcon size={10} className="mr-1"/> 随机顺序</div>
                     </div>
                     
-                    <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white p-8 mb-8">
-                        <div className="text-xl text-slate-800 mb-8 font-serif leading-relaxed">
+                    <Card className="mb-8">
+                        <div className="text-xl text-slate-800 mb-10 font-serif leading-relaxed">
                             {current.fullSentence.split('(').map((part, i) => {
                                 if (i === 0) return <span key={i}>{part}</span>;
                                 return <span key={i}><span className="font-bold text-indigo-600 mx-1 bg-indigo-50 px-1 rounded">({part.charAt(0)})</span>{part.substring(1)}</span>;
                             })}
                         </div>
 
-                        <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-8 flex gap-3 items-start">
-                            <AlertCircle size={20} className="text-orange-600 flex-shrink-0 mt-0.5"/>
+                        <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-100 mb-8 flex gap-4 items-start">
+                            <div className="bg-orange-100 p-2 rounded-lg flex-shrink-0">
+                                <AlertCircle size={20} className="text-orange-600"/>
+                            </div>
                             <div>
-                                <p className="text-orange-900 font-bold text-sm">任务：</p>
-                                <p className="text-orange-800/80 text-sm">错误点在选项 <strong>({current.errorLabel})</strong>: "{current.errorPart}"，请在下方输入修正后的表达。</p>
+                                <p className="text-orange-900 font-bold mb-1">
+                                    找错与改错
+                                </p>
+                                <p className="text-orange-800/80 text-sm">
+                                    错误点在选项 <strong>({current.errorLabel})</strong>: "{current.errorPart}"，请在下方输入修正后的表达。
+                                </p>
                             </div>
                         </div>
 
                         <div className="space-y-4">
+                            <label className="block text-sm font-bold text-slate-400 uppercase tracking-wider">Your Correction</label>
                             <div className="flex gap-3">
                                 <input 
                                     type="text" 
@@ -791,102 +956,159 @@
                                     onChange={(e) => setUserInput(e.target.value)}
                                     placeholder="在此输入正确的表达..."
                                     disabled={status === "correct"}
-                                    className={`flex-grow p-4 text-lg border-2 rounded-xl outline-none transition-all ${status === 'correct' ? 'border-green-500 bg-green-50 text-green-900' : status === 'wrong' ? 'border-red-500 bg-red-50 text-red-900' : 'border-slate-100 focus:border-indigo-500 focus:shadow-lg'}`}
+                                    className={`flex-grow p-4 text-lg border-2 rounded-xl outline-none transition-all
+                                        ${status === 'correct' ? 'border-green-500 bg-green-50 text-green-900' : 
+                                            status === 'wrong' ? 'border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:border-indigo-500 focus:shadow-indigo-100 focus:shadow-lg'}
+                                    `}
                                     onKeyDown={(e) => e.key === 'Enter' && status !== 'correct' && handleCheck()}
                                 />
-                                {status !== "correct" && <Button onClick={handleCheck} disabled={!userInput.trim()}>检查</Button>}
+                                {status !== "correct" && (
+                                    <Button onClick={handleCheck} disabled={!userInput.trim()}>检查</Button>
+                                )}
                             </div>
                         </div>
 
                         {status !== "idle" && (
-                            <div className={`mt-6 p-5 rounded-2xl border flex flex-col gap-4 animate-fade-in-up ${status === 'correct' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                <div className="flex items-center gap-3">
-                                    {status === 'correct' ? <CheckCircle className="text-green-600" size={24}/> : <XCircle className="text-red-600" size={24}/>}
-                                    <p className={`font-bold text-lg ${status === 'correct' ? 'text-green-900' : 'text-red-900'}`}>{status === 'correct' ? "Great! 回答正确" : "Oops! 再试一次"}</p>
+                            <div className={`mt-6 p-5 rounded-xl border flex flex-col gap-4 animate-fade-in-up
+                                ${status === 'correct' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}
+                            `}>
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-2 rounded-full ${status === 'correct' ? 'bg-green-200' : 'bg-red-200'}`}>
+                                        {status === 'correct' ? <CheckCircle className="text-green-700" size={24} /> : <XCircle className="text-red-700" size={24} />}
+                                    </div>
+                                    <div>
+                                        <p className={`font-bold text-lg ${status === 'correct' ? 'text-green-900' : 'text-red-900'}`}>
+                                            {status === 'correct' ? "Great! 回答正确" : "Oops! 再试一次"}
+                                        </p>
+                                        {status === 'wrong' && (
+                                            <p className="text-slate-600 mt-1">
+                                                标准答案: <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded ml-1">{current.correction}</span>
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="pl-9">
-                                    <p className="text-slate-700 mb-2"><span className="font-bold">参考答案:</span> <span className="text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded ml-1">{current.correction}</span></p>
-                                    <div className="text-sm text-slate-600 bg-white/60 p-3 rounded-lg border border-black/5"><span className="font-bold text-slate-800">💡 解析：</span>{current.explanation}</div>
+
+                                {/* 显示解析 */}
+                                <div className="mt-2 pt-4 border-t border-black/5">
+                                    <div className="flex items-start gap-2">
+                                        <div className="bg-white/50 p-1.5 rounded text-indigo-600 mt-0.5">
+                                            <HelpCircle size={16} />
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">WHY?</span>
+                                            <p className="text-slate-700 font-medium leading-relaxed">{current.explanation}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </Card>
 
-                    <div className="flex justify-between items-center pb-12">
+                    <div className="flex justify-between items-center">
                         <Button variant="secondary" onClick={prev} disabled={index === 0}><ChevronLeft size={18}/> 上一题</Button>
-                        <Button onClick={next} disabled={index === shuffledQuestions.length - 1}>下一题 <ChevronRight size={18}/></Button>
+                        <Button onClick={next} disabled={index === shuffledQuestions.length - 1} variant="secondary">
+                            下一题 <ChevronRight size={18}/>
+                        </Button>
                     </div>
                 </div>
             );
         };
 
-        const MistakeNotebook = ({ mistakes, removeMistake, onBack }) => {
+        const MistakeNotebook = ({ mistakes, removeMistake }) => {
+            if (mistakes.length === 0) {
+                return (
+                    <div className="text-center py-20 animate-fade-in-up">
+                        <div className="bg-green-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle size={48} className="text-green-500" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-800 mb-2">太棒了！暂无错题</h3>
+                        <p className="text-slate-500">做错的题目会自动出现在这里，继续加油！</p>
+                    </div>
+                );
+            }
+
             return (
-                <div className="max-w-4xl mx-auto px-4 pb-12">
-                    <SectionHeader title="我的错题本" subtitle={`共收录 ${mistakes.length} 道错题，温故而知新`} onBack={onBack} />
-                    
-                    {mistakes.length === 0 ? (
-                        <div className="text-center py-20 animate-fade-in-up bg-white rounded-3xl border border-slate-100 shadow-sm">
-                            <div className="bg-green-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle size={48} className="text-green-500" /></div>
-                            <h3 className="text-2xl font-bold text-slate-800 mb-2">太棒了！暂无错题</h3>
-                            <p className="text-slate-500">做错的题目会自动出现在这里，继续加油！</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {mistakes.map((item, idx) => (
-                                <div key={idx} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all relative group animate-fade-in-up" style={{animationDelay: `${idx * 50}ms`}}>
-                                    <button onClick={() => removeMistake(item.id, item.type)} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="移除此题"><Trash2 size={20}/></button>
-                                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${item.type === 'mcq' ? 'bg-indigo-100 text-indigo-700' : item.type === 'trans' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
-                                        {item.type === 'mcq' ? '单项选择' : item.type === 'trans' ? '汉译英' : '改错题'}
-                                    </span>
+                <div className="max-w-4xl mx-auto space-y-6 animate-fade-in-up">
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className="bg-red-100 p-2 rounded-lg text-red-600"><BookX size={24}/></div>
+                        <h2 className="text-2xl font-bold text-slate-800">错题本 <span className="text-base font-normal text-slate-400">({mistakes.length})</span></h2>
+                    </div>
 
-                                    {item.type === 'mcq' && (
-                                        <div>
-                                            <p className="text-lg font-medium text-slate-800 mb-4">{item.q.q}</p>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-                                                {item.q.options.map((opt, i) => (
-                                                    <div key={i} className={`p-3 rounded-lg border text-sm ${i === item.q.ans ? 'bg-green-50 border-green-200 text-green-800 font-bold' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>{String.fromCharCode(65 + i)}. {opt}</div>
-                                                ))}
+                    {mistakes.map((item, idx) => (
+                        <div key={idx} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative group hover:border-red-200 transition-all">
+                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button 
+                                    onClick={() => removeMistake(item.id, item.type)}
+                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                    title="移除此题"
+                                >
+                                    <Trash2 size={20}/>
+                                </button>
+                            </div>
+
+                            <span className={`inline-block px-2 py-1 rounded text-xs font-bold mb-3 
+                                ${item.type === 'mcq' ? 'bg-indigo-100 text-indigo-700' : 
+                                  item.type === 'trans' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                                {item.type === 'mcq' ? '单项选择' : item.type === 'trans' ? '汉译英' : '改错题'}
+                            </span>
+
+                            {item.type === 'mcq' && (
+                                <div>
+                                    <p className="text-lg font-medium text-slate-800 mb-4">{item.q.q}</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                                        {item.q.options.map((opt, i) => (
+                                            <div key={i} className={`p-2 rounded border text-sm ${i === item.q.ans ? 'bg-green-50 border-green-200 text-green-800 font-bold' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
+                                                {String.fromCharCode(65 + i)}. {opt}
                                             </div>
-                                            <p className="text-sm text-slate-500 bg-slate-50 p-3 rounded-xl">💡 解析: {item.q.explanation}</p>
-                                        </div>
-                                    )}
-
-                                    {item.type === 'trans' && (
-                                        <div>
-                                            <p className="text-lg font-bold text-slate-800 mb-3">{item.q.q}</p>
-                                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 font-serif leading-relaxed">{item.q.a}</div>
-                                        </div>
-                                    )}
-
-                                    {item.type === 'error' && (
-                                        <div>
-                                            <p className="text-lg font-medium text-slate-800 mb-3 font-serif">{item.q.fullSentence}</p>
-                                            <div className="flex gap-4 text-sm mt-3 flex-wrap">
-                                                <span className="text-red-600 bg-red-50 px-3 py-1 rounded-lg">错误: {item.q.errorPart} ({item.q.errorLabel})</span>
-                                                <span className="text-green-600 bg-green-50 px-3 py-1 rounded-lg font-bold">正解: {item.q.correction}</span>
-                                            </div>
-                                            <p className="text-sm text-slate-500 mt-3 bg-slate-50 p-3 rounded-xl">💡 解析: {item.q.explanation}</p>
-                                        </div>
-                                    )}
+                                        ))}
+                                    </div>
+                                    <p className="text-sm text-slate-500">解析: {item.q.explanation}</p>
                                 </div>
-                            ))}
+                            )}
+
+                            {item.type === 'trans' && (
+                                <div>
+                                    <p className="text-lg font-bold text-slate-800 mb-2">{item.q.q}</p>
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-slate-600 font-serif">
+                                        {item.q.a}
+                                    </div>
+                                </div>
+                            )}
+
+                            {item.type === 'error' && (
+                                <div>
+                                    <p className="text-lg font-medium text-slate-800 mb-2 font-serif">{item.q.fullSentence}</p>
+                                    <div className="flex gap-4 text-sm mt-3">
+                                        <span className="text-red-600 bg-red-50 px-2 py-1 rounded">错误点: {item.q.errorPart} ({item.q.errorLabel})</span>
+                                        <span className="text-green-600 bg-green-50 px-2 py-1 rounded font-bold">正解: {item.q.correction}</span>
+                                    </div>
+                                    <div className="mt-2 text-sm text-slate-500 bg-slate-50 p-2 rounded">
+                                        <span className="font-bold text-slate-400 mr-2">解析:</span> {item.q.explanation}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    ))}
                 </div>
             );
         };
 
         function App() {
             const [mode, setMode] = useState('menu');
+            
+            // 错题本状态管理
             const [wrongAnswers, setWrongAnswers] = useState(() => {
                 try {
                     const saved = localStorage.getItem('handen_mistakes');
                     return saved ? JSON.parse(saved) : [];
-                } catch (e) { return []; }
+                } catch (e) {
+                    return [];
+                }
             });
 
-            useEffect(() => { localStorage.setItem('handen_mistakes', JSON.stringify(wrongAnswers)); }, [wrongAnswers]);
+            useEffect(() => {
+                localStorage.setItem('handen_mistakes', JSON.stringify(wrongAnswers));
+            }, [wrongAnswers]);
 
             const addToMistakes = (item) => {
                 setWrongAnswers(prev => {
@@ -900,81 +1122,152 @@
                 setWrongAnswers(prev => prev.filter(i => !(i.id === id && i.type === type)));
             };
 
-            return (
-                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 font-sans pb-20">
-                    {/* Background Blobs */}
-                    <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-                        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-                        <div className="absolute bottom-[-10%] left-[20%] w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
-                    </div>
-
-                    <div className="relative z-10">
-                        {mode === 'menu' ? (
-                            <React.Fragment>
-                                <Header />
-                                <main className="p-6 md:p-12 max-w-7xl mx-auto">
-                                    {/* Hero Section */}
-                                    <div className="mb-16 text-center animate-fade-in-up">
-                                        <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
-                                            外贸函电 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">期末高分攻略</span>
-                                        </h1>
-                                        <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                                            不仅仅是刷题。交互式学习、智能纠错、科学记忆，助你轻松掌握外贸函电核心考点。
-                                        </p>
+            const renderContent = () => {
+                switch(mode) {
+                    case 'mcq': return <MCQSection data={mcqData} addToMistakes={addToMistakes} />;
+                    case 'fill': return <FillBlanksSection data={fillBlanksData} />;
+                    case 'trans': return <TranslationSection data={translationData} addToMistakes={addToMistakes} />;
+                    case 'error': return <ErrorCorrectionSection data={errorData} addToMistakes={addToMistakes} />;
+                    case 'mistakes': return <MistakeNotebook mistakes={wrongAnswers} removeMistake={removeMistake} />;
+                    default: return (
+                        <React.Fragment>
+                            <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-3xl p-10 md:p-14 text-white shadow-xl mb-12 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+                                <div className="absolute bottom-0 left-0 w-40 h-40 bg-pink-500 opacity-10 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl"></div>
+                                
+                                <div className="relative z-10 max-w-2xl">
+                                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium mb-4 border border-white/20">
+                                        <Star size={14} className="fill-yellow-300 text-yellow-300"/> 期末高分神器
                                     </div>
-
-                                    {/* Cards Grid */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                        <MenuCard 
-                                            icon={CheckCircle} 
-                                            title="Part I: 单项选择" 
-                                            desc="57道核心考题，包含智能解析与知识点巩固。"
-                                            color="bg-gradient-to-br from-indigo-500 to-purple-600"
-                                            onClick={() => setMode('mcq')}
-                                        />
-                                        <MenuCard 
-                                            icon={FileText} 
-                                            title="Part II: 选词填空" 
-                                            desc="六大情境板块，交互式点击填词，强化语境记忆。"
-                                            color="bg-gradient-to-br from-purple-500 to-pink-600"
-                                            onClick={() => setMode('fill')}
-                                        />
-                                        <MenuCard 
-                                            icon={Globe} 
-                                            title="Part III: 汉译英" 
-                                            desc="14道精选真题。翻转卡片背诵 + 拼句实战演练。"
-                                            color="bg-gradient-to-br from-blue-500 to-cyan-500"
-                                            onClick={() => setMode('trans')}
-                                        />
-                                        <MenuCard 
-                                            icon={PenTool} 
-                                            title="Part IV: 改错题" 
-                                            desc="50道易错题。模拟真实考试环境，含详细错误原因解析。"
-                                            color="bg-gradient-to-br from-orange-400 to-red-500"
-                                            onClick={() => setMode('error')}
-                                        />
-                                        <MenuCard 
-                                            icon={BookX} 
-                                            title="我的错题本" 
-                                            desc={`已收录 ${wrongAnswers.length} 道错题。重点攻克薄弱环节，温故知新。`}
-                                            color="bg-gradient-to-br from-slate-600 to-slate-800"
-                                            onClick={() => setMode('mistakes')}
-                                        />
-                                    </div>
-                                </main>
-                            </React.Fragment>
-                        ) : (
-                            <div className="pt-6">
-                                {mode === 'mcq' && <MCQSection data={mcqData} addToMistakes={addToMistakes} onBack={() => setMode('menu')} />}
-                                {mode === 'fill' && <FillBlanksSection data={fillBlanksData} onBack={() => setMode('menu')} />}
-                                {mode === 'trans' && <TranslationSection data={translationData} addToMistakes={addToMistakes} onBack={() => setMode('menu')} />}
-                                {mode === 'error' && <ErrorCorrectionSection data={errorData} addToMistakes={addToMistakes} onBack={() => setMode('menu')} />}
-                                {mode === 'mistakes' && <MistakeNotebook mistakes={wrongAnswers} removeMistake={removeMistake} onBack={() => setMode('menu')} />}
+                                    <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight">
+                                        +1教你学函电
+                                    </h1>
+                                    <p className="text-indigo-100 text-lg md:text-xl leading-relaxed mb-8 max-w-lg">
+                                        专为期末复习打造的智能刷题助手。四大核心板块，助你轻松掌握外贸函电知识点。
+                                    </p>
+                                    <button onClick={() => setMode('mcq')} className="bg-white text-indigo-700 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg active:scale-95">
+                                        开始复习
+                                    </button>
+                                </div>
+                                
+                                <div className="hidden md:block absolute right-10 top-1/2 -translate-y-1/2 opacity-20 rotate-12">
+                                    <GraduationCap size={280} />
+                                </div>
                             </div>
-                        )}
-                    </div>
-                </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                                <button onClick={() => setMode('mcq')} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group text-left relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <CheckCircle size={120} />
+                                    </div>
+                                    <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform duration-300">
+                                        <CheckCircle className="text-white" size={28}/>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Part I: 单项选择</h3>
+                                    <p className="text-slate-500 font-medium">57道核心考题，含智能解析</p>
+                                </button>
+
+                                <button onClick={() => setMode('fill')} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group text-left relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <FileText size={120} />
+                                    </div>
+                                    <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-200 group-hover:scale-110 transition-transform duration-300">
+                                        <FileText className="text-white" size={28} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Part II: 选词填空</h3>
+                                    <p className="text-slate-500 font-medium">六大Section，交互式填词体验</p>
+                                </button>
+
+                                <button onClick={() => setMode('trans')} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group text-left relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <Globe size={120} />
+                                    </div>
+                                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-200 group-hover:scale-110 transition-transform duration-300">
+                                        <Globe className="text-white" size={28} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Part III: 汉译英</h3>
+                                    <p className="text-slate-500 font-medium">60道真题，沉浸式翻卡记忆</p>
+                                </button>
+
+                                <button onClick={() => setMode('error')} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group text-left relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <PenTool size={120} />
+                                    </div>
+                                    <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-orange-200 group-hover:scale-110 transition-transform duration-300">
+                                        <PenTool className="text-white" size={28} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Part IV: 改错题</h3>
+                                    <p className="text-slate-500 font-medium">模拟真实考试，手写纠错</p>
+                                </button>
+
+                                <button onClick={() => setMode('mistakes')} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group text-left relative overflow-hidden md:col-span-2 bg-gradient-to-r from-slate-50 to-white">
+                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <BookX size={120} />
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <div className="bg-red-100 w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg shadow-red-100 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                                            <BookX className="text-red-600" size={32} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-bold text-slate-800 mb-1">错题本</h3>
+                                            <p className="text-slate-500 font-medium">
+                                                {wrongAnswers.length > 0 
+                                                    ? `已有 ${wrongAnswers.length} 道错题等待复习` 
+                                                    : "暂无错题，继续保持！"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </React.Fragment>
+                    );
+                }
+            };
+
+            return (
+                <React.Fragment>
+                    <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 sticky top-0 z-50">
+                        <div className="max-w-6xl mx-auto flex justify-between items-center">
+                            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setMode('menu')}>
+                                <div className="bg-indigo-600 text-white p-1.5 rounded-lg group-hover:rotate-12 transition-transform">
+                                    <GraduationCap size={20} />
+                                </div>
+                                <h1 className="text-lg font-bold text-slate-800 tracking-tight">
+                                    +1教你学函电
+                                </h1>
+                            </div>
+                            {mode !== 'menu' && (
+                                <button onClick={() => setMode('menu')} className="text-slate-500 hover:text-indigo-600 font-bold text-sm bg-slate-100 hover:bg-indigo-50 px-4 py-2 rounded-full transition-colors">
+                                    返回主页
+                                </button>
+                            )}
+                        </div>
+                    </nav>
+
+                    <main className="p-6 md:p-10 max-w-6xl mx-auto">
+                        {mode !== 'menu' && <Header title={
+                            mode === 'mcq' ? "Part I: 单项选择" : 
+                            mode === 'fill' ? "Part II: 选词填空" :
+                            mode === 'trans' ? "Part III: 汉译英" : 
+                            mode === 'error' ? "Part IV: 改错题" : "我的错题本"
+                        } subtitle={
+                            mode === 'mcq' ? "Select the best answer. Explanations available." :
+                            mode === 'fill' ? "Interactive context vocabulary practice." :
+                            mode === 'error' ? "Identify errors and type corrections." : 
+                            mode === 'mistakes' ? "Review your past mistakes." : "Review Mode"
+                        } />}
+                        
+                        <div className="animate-fade-in-up">
+                            {renderContent()}
+                        </div>
+                    </main>
+
+                    {mode === 'menu' && (
+                        <footer className="mt-20 text-center text-slate-400 text-sm pb-10">
+                            <p>© 2024 +1教你学函电 · 祝期末高分过关</p>
+                        </footer>
+                    )}
+                </React.Fragment>
             );
         }
 
