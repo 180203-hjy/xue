@@ -11,6 +11,8 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- 引入 Babel -->
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <!-- 引入 Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -47,7 +49,7 @@
             return newArr;
         }
 
-        // --- 图标组件 ---
+        // --- 图标组件 (使用 Lucide React 图标库的 SVG 路径) ---
         const IconBase = ({ size = 24, className = "", children, ...props }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>
         );
@@ -72,6 +74,8 @@
         const Bookmark = (props) => <IconBase {...props}><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></IconBase>;
         const Puzzle = (props) => <IconBase {...props}><path d="M19.439 15.424a5.626 5.626 0 0 0-9.67-5.932 5.56 5.56 0 0 0-4.022 5.344A5.627 5.627 0 0 0 0 19.826a5.64 5.64 0 0 0 3.75 5.253 5.636 5.636 0 0 0 9.273-3.087 5.627 5.627 0 0 0 6.416-6.568z"/></IconBase>;
         const Layout = (props) => <IconBase {...props}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></IconBase>;
+        const Eye = (props) => <IconBase {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></IconBase>;
+        const EyeOff = (props) => <IconBase {...props}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></IconBase>;
 
         // --- DATA SOURCE (完整整合版) ---
 
@@ -314,7 +318,7 @@
         ];
 
         // --- COMPONENTS ---
-
+        // ... existing components ...
         const Header = ({ title, subtitle }) => (
             <div className="mb-8 text-center animate-fade-in-up">
                 <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">{title}</h1>
@@ -869,10 +873,16 @@
             const [userInput, setUserInput] = useState("");
             const [status, setStatus] = useState("idle");
             const [shuffledQuestions, setShuffledQuestions] = useState([]);
+            const [showHint, setShowHint] = useState(false); // New state for hint visibility
 
             useEffect(() => {
                 setShuffledQuestions(shuffleArray(data));
             }, [data]);
+
+            // Reset hint when changing questions
+            useEffect(() => {
+                setShowHint(false);
+            }, [index]);
 
             if (shuffledQuestions.length === 0) return null;
 
@@ -884,15 +894,13 @@
                 
                 if (normalizedUser === normalizedCorrect || normalizedUser.includes(normalizedCorrect)) {
                     setStatus("correct");
-                    // Auto advance after correct
                     setTimeout(() => {
                         if (index < shuffledQuestions.length - 1) {
                             next();
                         }
-                    }, 2500); // Wait a bit longer so they can read explanation
+                    }, 2500);
                 } else {
                     setStatus("wrong");
-                    // Auto-add to mistakes
                     addToMistakes({
                         type: 'error',
                         id: current.id,
@@ -933,19 +941,37 @@
                             })}
                         </div>
 
-                        <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-100 mb-8 flex gap-4 items-start">
-                            <div className="bg-orange-100 p-2 rounded-lg flex-shrink-0">
-                                <AlertCircle size={20} className="text-orange-600"/>
-                            </div>
-                            <div>
-                                <p className="text-orange-900 font-bold mb-1">
-                                    找错与改错
-                                </p>
-                                <p className="text-orange-800/80 text-sm">
-                                    错误点在选项 <strong>({current.errorLabel})</strong>: "{current.errorPart}"，请在下方输入修正后的表达。
-                                </p>
-                            </div>
+                        {/* Toggle Button for Hint */}
+                        <div className="flex justify-end mb-4">
+                            <button 
+                                onClick={() => setShowHint(!showHint)}
+                                className="text-sm font-bold text-indigo-600 flex items-center gap-1 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                                {showHint ? <EyeOff size={16}/> : <Eye size={16}/>}
+                                {showHint ? "隐藏提示" : "显示提示"}
+                            </button>
                         </div>
+
+                        {showHint ? (
+                            <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-100 mb-8 flex gap-4 items-start animate-fade-in">
+                                <div className="bg-orange-100 p-2 rounded-lg flex-shrink-0">
+                                    <AlertCircle size={20} className="text-orange-600"/>
+                                </div>
+                                <div>
+                                    <p className="text-orange-900 font-bold mb-1">
+                                        找错与改错
+                                    </p>
+                                    <p className="text-orange-800/80 text-sm">
+                                        错误点在选项 <strong>({current.errorLabel})</strong>: "{current.errorPart}"，请在下方输入修正后的表达。
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 mb-8 flex flex-col items-center justify-center text-slate-400 gap-2">
+                                <HelpCircle size={24} className="opacity-50"/>
+                                <p className="text-sm">提示已隐藏，尝试自己找出错误点吧</p>
+                            </div>
+                        )}
 
                         <div className="space-y-4">
                             <label className="block text-sm font-bold text-slate-400 uppercase tracking-wider">Your Correction</label>
