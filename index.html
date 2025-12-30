@@ -76,6 +76,7 @@
         const Layout = (props) => <IconBase {...props}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></IconBase>;
         const Eye = (props) => <IconBase {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></IconBase>;
         const EyeOff = (props) => <IconBase {...props}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></IconBase>;
+        const Keyboard = (props) => <IconBase {...props}><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M6 8h.001" /><path d="M10 8h.001" /><path d="M14 8h.001" /><path d="M18 8h.001" /><path d="M6 12h.001" /><path d="M10 12h.001" /><path d="M14 12h.001" /><path d="M18 12h.001" /><path d="M7 16h10" /></IconBase>;
 
         // --- DATA SOURCE (完整整合版) ---
 
@@ -398,14 +399,6 @@
                 }
             };
 
-            const reset = () => {
-                setShuffledQuestions(shuffleArray(data));
-                setCurrentIndex(0);
-                setScore(0);
-                setSelected(null);
-                setShowResult(false);
-            };
-
             return (
                 <div className="max-w-3xl mx-auto">
                     <div className="flex justify-between items-center mb-6 px-2">
@@ -632,13 +625,17 @@
         const TranslationSection = ({ data, addToMistakes }) => {
             const [index, setIndex] = useState(0);
             const [flipped, setFlipped] = useState(false);
-            const [mode, setMode] = useState('practice'); // 'card' or 'practice'
+            const [mode, setMode] = useState('practice'); // 'card', 'practice', or 'typing'
             const [shuffledData, setShuffledData] = useState([]);
             
             // Practice Mode State
             const [availableWords, setAvailableWords] = useState([]);
             const [selectedWords, setSelectedWords] = useState([]);
             const [practiceStatus, setPracticeStatus] = useState('idle'); // idle, correct, wrong
+            
+            // Typing Mode State
+            const [typingInput, setTypingInput] = useState("");
+
             // 新增：是否显示答案的状态
             const [showAnswer, setShowAnswer] = useState(false);
 
@@ -650,11 +647,18 @@
             useEffect(() => {
                 if (shuffledData.length > 0) {
                     const current = shuffledData[index];
+                    
+                    // Reset Practice Mode
                     const words = current.a.split(' ').map((w, i) => ({ id: i, text: w }));
                     setAvailableWords(shuffleArray(words));
                     setSelectedWords([]);
+                    
+                    // Reset Typing Mode
+                    setTypingInput("");
+
+                    // Reset Common
                     setPracticeStatus('idle');
-                    setShowAnswer(false); // 重置显示答案状态
+                    setShowAnswer(false); 
                 }
             }, [index, shuffledData]);
 
@@ -663,14 +667,14 @@
             const next = () => {
                 setFlipped(false);
                 setPracticeStatus('idle');
-                setShowAnswer(false); // 重置
+                setShowAnswer(false);
                 setTimeout(() => setIndex(i => (i + 1) % shuffledData.length), 300);
             };
 
             const prev = () => {
                 setFlipped(false);
                 setPracticeStatus('idle');
-                setShowAnswer(false); // 重置
+                setShowAnswer(false);
                 setTimeout(() => {
                     if (index > 0) {
                         setIndex(i => i - 1);
@@ -685,12 +689,12 @@
                 setIndex(0);
                 setFlipped(false);
                 setShowAnswer(false);
+                setTypingInput("");
             }
 
             const handleWordClick = (word, from) => {
                 if (practiceStatus === 'correct') return;
 
-                // 用户操作时，隐藏答案并重置状态，鼓励用户自己尝试
                 setShowAnswer(false);
                 setPracticeStatus('idle');
 
@@ -707,16 +711,25 @@
                 const currentAnswer = selectedWords.map(w => w.text).join(' ');
                 const targetAnswer = shuffledData[index].a;
                 
-                // Remove extra spaces if any
                 if (currentAnswer.trim() === targetAnswer.trim()) {
                     setPracticeStatus('correct');
-                    // Auto advance
-                    setTimeout(() => {
-                        next();
-                    }, 1500);
+                    setTimeout(() => { next(); }, 1500);
                 } else {
                     setPracticeStatus('wrong');
-                    // Add to mistakes on wrong attempt
+                    addToMistakes({ type: 'trans', id: shuffledData[index].q, q: shuffledData[index] });
+                }
+            };
+
+            const checkTypingAnswer = () => {
+                // Normalize function: remove punctuation, extra spaces, and lowercase
+                const normalize = (str) => str.toLowerCase().replace(/[.,!?;:'"]/g, '').replace(/\s+/g, ' ').trim();
+                const targetAnswer = shuffledData[index].a;
+
+                if (normalize(typingInput) === normalize(targetAnswer)) {
+                    setPracticeStatus('correct');
+                    setTimeout(() => { next(); }, 1500);
+                } else {
+                    setPracticeStatus('wrong');
                     addToMistakes({ type: 'trans', id: shuffledData[index].q, q: shuffledData[index] });
                 }
             };
@@ -733,13 +746,19 @@
                                     onClick={() => setMode('card')}
                                     className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors ${mode === 'card' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
-                                    <Layout size={14}/> 翻卡模式
+                                    <Layout size={14}/> 翻卡
                                 </button>
                                 <button 
                                     onClick={() => setMode('practice')}
                                     className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors ${mode === 'practice' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
-                                    <Puzzle size={14}/> 拼句练习
+                                    <Puzzle size={14}/> 拼句
+                                </button>
+                                <button 
+                                    onClick={() => setMode('typing')}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors ${mode === 'typing' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    <Keyboard size={14}/> 拼写
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 bg-indigo-50 px-3 py-2 rounded-lg text-indigo-500 text-xs font-bold cursor-pointer hover:bg-indigo-100 transition-colors" onClick={resetShuffle} title="重新洗牌">
@@ -748,7 +767,7 @@
                         </div>
                     </div>
 
-                    {mode === 'card' ? (
+                    {mode === 'card' && (
                         <div className="perspective-1000 w-full mb-8">
                             <div 
                                 onClick={() => setFlipped(!flipped)}
@@ -782,7 +801,9 @@
                                 </div>
                             </div>
                         </div>
-                    ) : (
+                    )}
+
+                    {mode === 'practice' && (
                         <div className="w-full mb-8 animate-fade-in">
                             <Card className="min-h-[400px] flex flex-col">
                                 <div className="mb-8 p-4 bg-indigo-50 rounded-xl border border-indigo-100 text-center">
@@ -851,6 +872,76 @@
                                     {showAnswer && (
                                         <div className="w-full bg-indigo-50 border border-indigo-200 text-indigo-900 p-4 rounded-xl text-center font-bold text-lg animate-fade-in">
                                             {current.a}
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+                        </div>
+                    )}
+                    
+                    {mode === 'typing' && (
+                        <div className="w-full mb-8 animate-fade-in">
+                            <Card className="min-h-[400px] flex flex-col">
+                                <div className="mb-8 p-4 bg-indigo-50 rounded-xl border border-indigo-100 text-center">
+                                    <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest block mb-2">Type the translation</span>
+                                    <h3 className="text-xl font-bold text-slate-800">{current.q}</h3>
+                                </div>
+
+                                <div className="mb-6 relative">
+                                    <textarea 
+                                        value={typingInput}
+                                        onChange={(e) => {
+                                            setTypingInput(e.target.value);
+                                            setPracticeStatus('idle');
+                                            setShowAnswer(false);
+                                        }}
+                                        disabled={practiceStatus === 'correct'}
+                                        placeholder="在此处输入英文翻译..."
+                                        className={`w-full p-6 text-lg rounded-xl border-2 outline-none transition-all resize-none min-h-[120px] shadow-sm
+                                            ${practiceStatus === 'correct' 
+                                                ? 'border-green-500 bg-green-50 text-green-900' 
+                                                : practiceStatus === 'wrong' 
+                                                    ? 'border-red-500 bg-red-50 text-red-900' 
+                                                    : 'border-slate-200 focus:border-indigo-500 focus:shadow-indigo-100'
+                                            }
+                                        `}
+                                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), checkTypingAnswer())}
+                                    />
+                                    <div className="absolute bottom-4 right-4 text-xs text-slate-400 pointer-events-none">
+                                        按 Enter 提交
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto flex flex-col gap-4">
+                                    <div className="flex justify-between items-center w-full">
+                                        <div className="h-8 flex items-center">
+                                            {practiceStatus === 'correct' && (
+                                                <div className="flex items-center gap-2 text-green-600 font-bold animate-fade-in-up">
+                                                    <CheckCircle size={20}/> 拼写正确! 跳转中...
+                                                </div>
+                                            )}
+                                            {practiceStatus === 'wrong' && (
+                                                <div className="flex items-center gap-2 text-red-600 font-bold animate-shake">
+                                                    <XCircle size={20}/> 答案不匹配
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            {practiceStatus === 'wrong' && !showAnswer && (
+                                                <Button variant="danger" onClick={() => setShowAnswer(true)} className="px-3">
+                                                    <HelpCircle size={18} className="mr-1"/> 看答案
+                                                </Button>
+                                            )}
+                                            <Button onClick={checkTypingAnswer} disabled={!typingInput.trim() || practiceStatus === 'correct'}>
+                                                检查答案
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {showAnswer && (
+                                        <div className="w-full bg-indigo-50 border border-indigo-200 p-4 rounded-xl animate-fade-in flex flex-col gap-2">
+                                            <span className="text-xs font-bold text-indigo-400 uppercase">Correct Answer</span>
+                                            <p className="text-indigo-900 font-bold text-lg">{current.a}</p>
                                         </div>
                                     )}
                                 </div>
