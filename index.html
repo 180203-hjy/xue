@@ -2,203 +2,113 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 关键：viewport-fit=cover 适配刘海屏，禁止缩放 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>+1教你学文化 (V10 - Smart Feedback)</title>
+    <title>+1教你学文化 (V11 - Fixed Lookup)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- 核心移动端修复 --- */
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* 禁止 body 滚动，防止整体回弹 */
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f3e8ff;
-            -webkit-tap-highlight-color: transparent; /* 移除点击高亮 */
-        }
-
-        /* 强制全屏容器 */
-        #app-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            flex-direction: column;
-            padding-bottom: env(safe-area-inset-bottom); /* 适配 iPhone 底部横条 */
-        }
-
-        /* 桌面端恢复横向布局 */
-        @media (min-width: 768px) {
-            #app-wrapper {
-                flex-direction: row;
-                position: relative;
-                height: 100vh;
-            }
-        }
-
-        /* 局部滚动区域 */
-        .scroll-area {
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* iOS 流畅滚动 */
-            overscroll-behavior: contain;
-        }
-
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3e8ff; -webkit-tap-highlight-color: transparent; }
+        #app-wrapper { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+        @media (min-width: 768px) { #app-wrapper { flex-direction: row; position: relative; height: 100vh; } }
+        .scroll-area { overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         .option-btn { transition: transform 0.1s, background-color 0.2s; }
         .option-btn:active { transform: scale(0.98); background-color: #f3f4f6; }
         .option-selected { background-color: #e9d5ff !important; border-color: #9333ea !important; color: #4c1d95 !important; font-weight: 700; }
-
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
-
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d8b4fe; border-radius: 2px; }
-
         .nav-active { background-color: #581c87 !important; border-left: 4px solid #d8b4fe !important; }
-        
         .overlay { transition: opacity 0.3s ease; }
     </style>
 </head>
 <body>
-
     <div id="app-wrapper">
-        
-        <!-- Mobile Overlay -->
         <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden opacity-0 overlay backdrop-blur-sm"></div>
-
-        <!-- Sidebar -->
         <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-purple-900 text-white flex flex-col shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex-shrink-0 h-full">
             <div class="p-4 md:p-5 bg-purple-950 font-bold text-lg md:text-xl flex items-center justify-between border-b border-purple-800 flex-shrink-0">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-graduation-cap text-yellow-300"></i> 
-                    <span>+1教你学文化</span>
-                </div>
-                <button onclick="toggleSidebar()" class="md:hidden text-purple-300 p-2">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+                <div class="flex items-center gap-2"><i class="fas fa-graduation-cap text-yellow-300"></i><span>+1教你学文化</span></div>
+                <button onclick="toggleSidebar()" class="md:hidden text-purple-300 p-2"><i class="fas fa-times text-xl"></i></button>
             </div>
-            
             <div class="flex-1 overflow-y-auto p-2 space-y-1 scroll-area">
-                <button onclick="switchModule('matching_basic')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group nav-active" id="nav-matching_basic">
-                    <span class="font-medium text-sm md:text-base"><i class="fas fa-random w-5 mr-2 opacity-70"></i>核心连线 (Supp)</span>
-                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">5</span>
-                </button>
-                <button onclick="switchModule('matching_defs')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-matching_defs">
-                    <span class="font-medium text-sm md:text-base"><i class="fas fa-book-open w-5 mr-2 opacity-70"></i>名词解释 (Main)</span>
-                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">26</span>
-                </button>
-                <button onclick="switchModule('blanks')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-blanks">
-                    <span class="font-medium text-sm md:text-base"><i class="fas fa-pencil-alt w-5 mr-2 opacity-70"></i>理论填空 (Supp)</span>
-                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">10</span>
-                </button>
-                <button onclick="switchModule('mc')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-mc">
-                    <span class="font-medium text-sm md:text-base"><i class="fas fa-list-ul w-5 mr-2 opacity-70"></i>选择题 (Main)</span>
-                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">70</span>
-                </button>
-                <button onclick="switchModule('tf_a')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-tf_a">
-                    <span class="font-medium text-sm md:text-base"><i class="fas fa-check-square w-5 mr-2 opacity-70"></i>判断题 I (Supp)</span>
-                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">30</span>
-                </button>
-                <button onclick="switchModule('tf_b')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-tf_b">
-                    <span class="font-medium text-sm md:text-base"><i class="fas fa-check-circle w-5 mr-2 opacity-70"></i>判断题 II (Main)</span>
-                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">96</span>
-                </button>
+                <button onclick="switchModule('matching_basic')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group nav-active" id="nav-matching_basic"><span class="font-medium text-sm md:text-base"><i class="fas fa-random w-5 mr-2 opacity-70"></i>核心连线 (Supp)</span><span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">5</span></button>
+                <button onclick="switchModule('matching_defs')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-matching_defs"><span class="font-medium text-sm md:text-base"><i class="fas fa-book-open w-5 mr-2 opacity-70"></i>名词解释 (Main)</span><span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">26</span></button>
+                <button onclick="switchModule('blanks')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-blanks"><span class="font-medium text-sm md:text-base"><i class="fas fa-pencil-alt w-5 mr-2 opacity-70"></i>理论填空 (Supp)</span><span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">10</span></button>
+                <button onclick="switchModule('mc')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-mc"><span class="font-medium text-sm md:text-base"><i class="fas fa-list-ul w-5 mr-2 opacity-70"></i>选择题 (Main)</span><span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">70</span></button>
+                <button onclick="switchModule('tf_a')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-tf_a"><span class="font-medium text-sm md:text-base"><i class="fas fa-check-square w-5 mr-2 opacity-70"></i>判断题 I (Supp)</span><span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">30</span></button>
+                <button onclick="switchModule('tf_b')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-tf_b"><span class="font-medium text-sm md:text-base"><i class="fas fa-check-circle w-5 mr-2 opacity-70"></i>判断题 II (Main)</span><span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">96</span></button>
             </div>
         </aside>
-
-        <!-- Main Content Area -->
         <main class="flex-1 flex flex-col min-w-0 bg-gray-50 h-full w-full">
-            
-            <!-- Top Header -->
             <header class="bg-white shadow-sm px-4 py-3 flex justify-between items-center z-20 flex-shrink-0 border-b border-gray-100">
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <button onclick="toggleSidebar()" class="md:hidden text-purple-700 p-1.5 -ml-2 rounded-md active:bg-purple-50">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
+                    <button onclick="toggleSidebar()" class="md:hidden text-purple-700 p-1.5 -ml-2 rounded-md active:bg-purple-50"><i class="fas fa-bars text-xl"></i></button>
                     <div class="flex flex-col overflow-hidden">
                         <h2 id="module-title" class="text-base md:text-2xl font-bold text-purple-900 truncate">核心连线</h2>
                         <div class="text-xs text-gray-500">进度: <span id="progress-text" class="font-bold text-purple-600">1 / 5</span></div>
                     </div>
                 </div>
-                
                 <div class="flex items-center gap-2 flex-shrink-0">
-                    <label class="flex items-center bg-purple-50 px-3 py-1.5 rounded-full cursor-pointer active:bg-purple-100">
-                        <input type="checkbox" id="shuffle-toggle" class="w-4 h-4 text-purple-600 rounded" onchange="toggleShuffle()">
-                        <span class="ml-1.5 text-xs font-bold text-purple-700">随机</span>
-                    </label>
-                    <div class="hidden sm:flex items-center bg-white border border-gray-200 rounded-lg p-0.5">
-                        <input type="number" id="jump-input" class="w-10 text-center text-xs outline-none p-1" placeholder="#">
-                        <button onclick="jumpToQuestion()" class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">Go</button>
-                    </div>
+                    <label class="flex items-center bg-purple-50 px-3 py-1.5 rounded-full cursor-pointer active:bg-purple-100"><input type="checkbox" id="shuffle-toggle" class="w-4 h-4 text-purple-600 rounded" onchange="toggleShuffle()"><span class="ml-1.5 text-xs font-bold text-purple-700">随机</span></label>
+                    <div class="hidden sm:flex items-center bg-white border border-gray-200 rounded-lg p-0.5"><input type="number" id="jump-input" class="w-10 text-center text-xs outline-none p-1" placeholder="#"><button onclick="jumpToQuestion()" class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">Go</button></div>
                 </div>
             </header>
-
-            <!-- Progress Bar -->
-            <div class="w-full bg-gray-200 h-1 flex-shrink-0">
-                <div id="progress-bar" class="bg-purple-500 h-1 transition-all duration-300" style="width: 0%"></div>
-            </div>
-
-            <!-- Scrollable Content -->
+            <div class="w-full bg-gray-200 h-1 flex-shrink-0"><div id="progress-bar" class="bg-purple-500 h-1 transition-all duration-300" style="width: 0%"></div></div>
             <div id="quiz-container" class="flex-1 overflow-y-auto scroll-area p-3 md:p-8 w-full">
                 <div class="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-purple-50 p-4 md:p-8 mb-4 min-h-fit pb-10" id="card-content">
-                    
-                    <!-- Question Header -->
                     <div class="mb-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="bg-purple-100 text-purple-800 text-[10px] md:text-xs px-2 py-1 rounded font-bold uppercase" id="q-type">TYPE</span>
-                            <span class="text-gray-400 text-[10px] font-mono bg-gray-100 px-1.5 py-0.5 rounded" id="q-id">#1</span>
-                        </div>
+                        <div class="flex justify-between items-start mb-2"><span class="bg-purple-100 text-purple-800 text-[10px] md:text-xs px-2 py-1 rounded font-bold uppercase" id="q-type">TYPE</span><span class="text-gray-400 text-[10px] font-mono bg-gray-100 px-1.5 py-0.5 rounded" id="q-id">#1</span></div>
                         <h3 class="text-base md:text-xl font-bold text-gray-800 leading-relaxed break-words" id="q-text">Loading...</h3>
-                        <div id="multi-hint" class="hidden mt-2 text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded inline-block">
-                            <i class="fas fa-check-double mr-1"></i>多选
-                        </div>
+                        <div id="multi-hint" class="hidden mt-2 text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded inline-block"><i class="fas fa-check-double mr-1"></i>多选</div>
                     </div>
-
-                    <!-- Options -->
                     <div id="options-container" class="space-y-3"></div>
-
-                    <!-- Actions -->
-                    <div id="multi-actions" class="hidden mt-5">
-                        <button onclick="submitMultiAnswer()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold text-sm shadow-lg active:bg-purple-700 active:shadow-none transition-all">
-                            提交答案
-                        </button>
-                    </div>
-
-                    <!-- Feedback -->
+                    <div id="multi-actions" class="hidden mt-5"><button onclick="submitMultiAnswer()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold text-sm shadow-lg active:bg-purple-700 active:shadow-none transition-all">提交答案</button></div>
                     <div id="feedback-area" class="mt-5 hidden rounded-lg p-3 border-l-4 bg-gray-50 text-sm break-words">
-                        <div class="flex gap-3">
-                            <div id="feedback-icon" class="flex-shrink-0 mt-0.5"></div>
-                            <div>
-                                <div id="feedback-title" class="font-bold"></div>
-                                <div id="feedback-msg" class="mt-1 text-gray-700 leading-relaxed"></div>
-                            </div>
-                        </div>
+                        <div class="flex gap-3"><div id="feedback-icon" class="flex-shrink-0 mt-0.5"></div><div><div id="feedback-title" class="font-bold"></div><div id="feedback-msg" class="mt-1 text-gray-700 leading-relaxed"></div></div></div>
                     </div>
-
-                    <!-- Navigation -->
                     <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-gray-100">
-                        <button id="prev-btn" onclick="prevQuestion()" class="bg-white border border-gray-200 text-gray-600 py-2.5 rounded-lg font-bold text-sm active:bg-gray-50 disabled:opacity-50">
-                            <i class="fas fa-arrow-left mr-1"></i> 上一题
-                        </button>
-                        <button id="next-btn" onclick="nextQuestion()" class="bg-purple-600 text-white py-2.5 rounded-lg font-bold text-sm shadow-md active:bg-purple-700 active:shadow-none">
-                            下一题 <i class="fas fa-arrow-right ml-1"></i>
-                        </button>
+                        <button id="prev-btn" onclick="prevQuestion()" class="bg-white border border-gray-200 text-gray-600 py-2.5 rounded-lg font-bold text-sm active:bg-gray-50 disabled:opacity-50"><i class="fas fa-arrow-left mr-1"></i> 上一题</button>
+                        <button id="next-btn" onclick="nextQuestion()" class="bg-purple-600 text-white py-2.5 rounded-lg font-bold text-sm shadow-md active:bg-purple-700 active:shadow-none">下一题 <i class="fas fa-arrow-right ml-1"></i></button>
                     </div>
-
                 </div>
             </div>
         </main>
     </div>
 
     <script>
+        // 定义所有名词解释的标准答案库，确保 distractors 和 answers 使用完全一致的字符串
+        const DEFS = {
+            1: "Refers to the act and process of sending and receiving messages among people",
+            2: "Refers to the process of the sender putting the message into a signal",
+            3: "Refers to the process of the receiver interpreting the signal from the sender",
+            4: "Refers to the occasion involved and the people in it",
+            5: "Refers to communication norms in different cultures",
+            6: "Refers to interpersonal communication between members of different cultures",
+            7: "Refers to communication within and between businesses that involve people from more than one culture",
+            8: "Refers to an overly simplified or generalized way of thinking about a person or a group",
+            9: "Refers to the irrational dislike, suspicion or hatred of a particular group, race, religion, or sexual orientation",
+            10: "Refers to the feeling of confusion or disorientation that one experiences when faced with a number of new and unfamiliar people or situations",
+            11: "It is what distinguishes human beings from animals. It is an abstract entity which involves a number of usually manmade collective and shared artifacts, behavior patterns and values",
+            12: "Values are at the core of culture and can be defined as the preferability of one belief over another; the system of criteria by which conduct is judged",
+            13: "The idea of people taking care of themselves and their immediate families",
+            14: "A cultural dimension that measures a society’s focus on the future",
+            15: "A style of communication where people encode messages in the surrounding context (relationship, history) rather than in the explicit words",
+            16: "The original language text of a translation",
+            17: "The text into which it is translated",
+            18: "Dictionary meaning or literal meaning",
+            19: "Extended meaning or associated meaning",
+            20: "The inability to understand what is meant by what is said",
+            21: "Refers to communication without the use of words",
+            22: "Refers to the rate, pitch, and volume qualities of the voice, which interrupt or temporarily take the place of speech and affect the meaning of a message",
+            23: "Means paying attention to and doing only one thing at a time",
+            24: "Means being involved with many things at once",
+            25: "A paragraph that tells what the letter is about, is pleasant and says neither “yes” nor “no”",
+            26: "A message starts with clearly stating the main idea, the request or the good news first, then include the details necessary and at last close cordially"
+        };
+
         const DB = {
             matching_basic: [
                 { id: 1, q: "Definition of: Racism", opts: ["Superior because of color of skin", "Anxiety from losing all familiar signs", "Rigid and irrational generalization about a group", "The belief that your own culture is correct"], ans: "Superior because of color of skin", exp: "Racism (种族主义) 指的是仅仅因为肤色或种族而产生的优越感。" },
@@ -207,33 +117,34 @@
                 { id: 4, q: "Definition of: Avoidance of the unfamiliar", opts: ["Birds of a feather flock together", "Your own culture is correct", "Rigid and irrational generalization about a group", "Paying attention to and doing only one thing at a time"], ans: "Birds of a feather flock together", exp: "Avoidance (回避不熟悉的事物) 常表现为'物以类聚' (Birds of a feather flock together)。" },
                 { id: 5, q: "Definition of: Ethnocentrism", opts: ["Your own culture is correct", "Superior because of color of skin", "Anxiety from losing all familiar signs", "Refers to the process of the sender putting the message into a signal"], ans: "Your own culture is correct", exp: "Ethnocentrism (民族中心主义) 指认为自己的文化是正确的、优越的。" },
             ],
+            // 使用 DEFS 常量重构数据，确保一致性
             matching_defs: [
-                { id: 1, q: "Definition of: Communication", opts: ["Refers to the act and process of sending and receiving messages among people", "Refers to interpersonal communication between members of different cultures", "Refers to communication norms in different cultures", "Refers to the occasion involved and the people in it"], ans: "Refers to the act and process of sending and receiving messages among people", exp: "Communication (沟通)。" },
-                { id: 2, q: "Definition of: Encoding", opts: ["Refers to the process of the sender putting the message into a signal", "Refers to the process of the receiver interpreting the signal from the sender", "Refers to the act and process of sending messages", "The inability to understand what is meant by what is said"], ans: "Refers to the process of the sender putting the message into a signal", exp: "Encoding (编码)。" },
-                { id: 3, q: "Definition of: Decoding", opts: ["Refers to the process of the receiver interpreting the signal from the sender", "Refers to the process of the sender putting the message into a signal", "Refers to communication norms in different cultures", "Extended meaning or associated meaning"], ans: "Refers to the process of the receiver interpreting the signal from the sender", exp: "Decoding (解码)。" },
-                { id: 4, q: "Definition of: Social context", opts: ["Refers to the occasion involved and the people in it", "Refers to communication norms in different cultures", "Refers to the setting or situation within which communication takes place", "Refers to communication within and between businesses"], ans: "Refers to the occasion involved and the people in it", exp: "Social context (社会语境)。" },
-                { id: 5, q: "Definition of: Cultural context", opts: ["Refers to communication norms in different cultures", "Refers to the occasion involved and the people in it", "Refers to interpersonal communication between members of different cultures", "Refers to communication without the use of words"], ans: "Refers to communication norms in different cultures", exp: "Cultural context (文化语境)。" },
-                { id: 6, q: "Definition of: Intercultural Communication", opts: ["Refers to interpersonal communication between members of different cultures", "Refers to communication within and between businesses involving different cultures", "Refers to the act and process of sending messages", "Refers to communication norms in different cultures"], ans: "Refers to interpersonal communication between members of different cultures", exp: "Intercultural Communication (跨文化沟通)。" },
-                { id: 7, q: "Definition of: Intercultural Business Communication", opts: ["Refers to communication within and between businesses that involve people from more than one culture", "Refers to interpersonal communication between members of different cultures", "Refers to the act and process of sending messages", "Values are at the core of culture"], ans: "Refers to communication within and between businesses that involve people from more than one culture", exp: "Intercultural Business Communication (跨文化商务沟通)。" },
-                { id: 8, q: "Definition of: Stereotyping", opts: ["Refers to an overly simplified or generalized way of thinking about a person or a group", "Refers to the irrational dislike of a particular group", "Refers to the feeling of confusion or disorientation", "Belief that one is superior because of skin color"], ans: "Refers to an overly simplified or generalized way of thinking about a person or a group", exp: "Stereotyping (刻板印象)。" },
-                { id: 9, q: "Definition of: Prejudice", opts: ["Refers to the irrational dislike, suspicion or hatred of a particular group, race, religion, or sexual orientation", "Refers to an overly simplified way of thinking", "Refers to the feeling of confusion or disorientation", "Your own culture is correct"], ans: "Refers to the irrational dislike, suspicion or hatred of a particular group, race, religion, or sexual orientation", exp: "Prejudice (偏见) - 定义已补全。" },
-                { id: 10, q: "Definition of: Cultural shock", opts: ["Refers to the feeling of confusion or disorientation that one experiences when faced with a number of new and unfamiliar people or situations", "Refers to an overly simplified way of thinking", "Refers to the irrational dislike of a group", "Refers to communication norms in different cultures"], ans: "Refers to the feeling of confusion or disorientation that one experiences when faced with a number of new and unfamiliar people or situations", exp: "Cultural shock (文化冲击) - 定义已补全。" },
-                { id: 11, q: "Definition of: Culture", opts: ["It is what distinguishes human beings from animals. It is an abstract entity which involves a number of usually manmade collective and shared artifacts, behavior patterns and values", "Refers to the act and process of sending messages", "Refers to communication norms in different cultures", "The idea of people taking care of themselves"], ans: "It is what distinguishes human beings from animals. It is an abstract entity which involves a number of usually manmade collective and shared artifacts, behavior patterns and values", exp: "Culture (文化) - 定义已补全。" },
-                { id: 12, q: "Definition of: Sociocultural values", opts: ["Values are at the core of culture and can be defined as the preferability of one belief over another; the system of criteria by which conduct is judged", "The idea of people taking care of themselves", "Refers to communication norms in different cultures", "Dictionary meaning or literal meaning"], ans: "Values are at the core of culture and can be defined as the preferability of one belief over another; the system of criteria by which conduct is judged", exp: "Sociocultural values (社会文化价值观) - 定义已补全。" },
-                { id: 13, q: "Definition of: Individualism", opts: ["The idea of people taking care of themselves and their immediate families", "A cultural dimension that measures a society’s focus on the future", "Paying attention to and doing only one thing at a time", "Refers to an overly simplified way of thinking"], ans: "The idea of people taking care of themselves and their immediate families", exp: "Individualism (个人主义)。" },
-                { id: 14, q: "Definition of: Long-term orientation", opts: ["A cultural dimension that measures a society’s focus on the future", "The idea of people taking care of themselves", "Style where people encode messages in context", "Paying attention to and doing only one thing at a time"], ans: "A cultural dimension that measures a society’s focus on the future", exp: "Long-term orientation (长期导向)。" },
-                { id: 15, q: "Definition of: High-context culture", opts: ["A style of communication where people encode messages in the surrounding context (relationship, history) rather than in the explicit words", "Means paying attention to and doing only one thing at a time", "Refers to communication within and between businesses", "Dictionary meaning or literal meaning"], ans: "A style of communication where people encode messages in the surrounding context (relationship, history) rather than in the explicit words", exp: "High-context culture (高语境文化) - 定义已补全。" },
-                { id: 16, q: "Definition of: Source text", opts: ["The original language text of a translation", "The text into which it is translated", "Dictionary meaning or literal meaning", "Extended meaning or associated meaning"], ans: "The original language text of a translation", exp: "Source text (原文)。" },
-                { id: 17, q: "Definition of: Target text", opts: ["The text into which it is translated", "The original language text of a translation", "Dictionary meaning or literal meaning", "Extended meaning or associated meaning"], ans: "The text into which it is translated", exp: "Target text (译文/目标文本)。" },
-                { id: 18, q: "Definition of: Denotational meaning", opts: ["Dictionary meaning or literal meaning", "Extended meaning or associated meaning", "The inability to understand what is meant", "Refers to the rate, pitch, and volume qualities"], ans: "Dictionary meaning or literal meaning", exp: "Denotational meaning (字面义)。" },
-                { id: 19, q: "Definition of: Connotational meaning", opts: ["Extended meaning or associated meaning", "Dictionary meaning or literal meaning", "The inability to understand what is meant", "Refers to communication without words"], ans: "Extended meaning or associated meaning", exp: "Connotational meaning (内涵义)。" },
-                { id: 20, q: "Definition of: Pragmatic failure/transfer", opts: ["The inability to understand what is meant by what is said", "Refers to the feeling of confusion or disorientation", "Refers to the act and process of sending messages", "Dictionary meaning or literal meaning"], ans: "The inability to understand what is meant by what is said", exp: "Pragmatic failure (语用失误)。" },
-                { id: 21, q: "Definition of: Nonverbal communication", opts: ["Refers to communication without the use of words", "Refers to the rate, pitch, and volume qualities of voice", "Refers to the act and process of sending messages", "Refers to communication norms in different cultures"], ans: "Refers to communication without the use of words", exp: "Nonverbal communication (非言语沟通)。" },
-                { id: 22, q: "Definition of: Paralanguage", opts: ["Refers to the rate, pitch, and volume qualities of the voice, which interrupt or temporarily take the place of speech and affect the meaning of a message", "Refers to communication without the use of words", "Means paying attention to and doing only one thing at a time", "Refers to the occasion involved and the people in it"], ans: "Refers to the rate, pitch, and volume qualities of the voice, which interrupt or temporarily take the place of speech and affect the meaning of a message", exp: "Paralanguage (副语言) - 定义已补全。" },
-                { id: 23, q: "Definition of: Monochronic-time cultures", opts: ["Means paying attention to and doing only one thing at a time", "Means being involved with many things at once", "A cultural dimension that measures a society’s focus on the future", "Style where people encode messages in context"], ans: "Means paying attention to and doing only one thing at a time", exp: "Monochronic (单向时间)。" },
-                { id: 24, q: "Definition of: Polychronic-time cultures", opts: ["Means being involved with many things at once", "Means paying attention to and doing only one thing at a time", "Refers to communication without the use of words", "Refers to the occasion involved and the people in it"], ans: "Means being involved with many things at once", exp: "Polychronic (多向时间)。" },
-                { id: 25, q: "Definition of: Buffer", opts: ["A paragraph that tells what the letter is about, is pleasant and says neither “yes” nor “no”", "A message starts with clearly stating the main idea", "Refers to the rate, pitch, and volume qualities", "The original language text of a translation"], ans: "A paragraph that tells what the letter is about, is pleasant and says neither “yes” nor “no”", exp: "Buffer (缓冲段) - 定义已补全。" },
-                { id: 26, q: "Definition of: Direct plan message", opts: ["A message starts with clearly stating the main idea, the request or the good news first, then include the details necessary and at last close cordially", "A paragraph that is pleasant and says neither “yes” nor “no”", "Style where people encode messages in context", "Refers to communication within and between businesses"], ans: "A message starts with clearly stating the main idea, the request or the good news first, then include the details necessary and at last close cordially", exp: "Direct plan (直接法) - 定义已补全。" }
+                { id: 1, q: "Definition of: Communication", ans: DEFS[1], opts: [DEFS[1], DEFS[6], DEFS[5], DEFS[4]], exp: "Communication (沟通)。" },
+                { id: 2, q: "Definition of: Encoding", ans: DEFS[2], opts: [DEFS[2], DEFS[3], DEFS[1], "The inability to understand what is meant by what is said"], exp: "Encoding (编码)。" },
+                { id: 3, q: "Definition of: Decoding", ans: DEFS[3], opts: [DEFS[3], DEFS[2], DEFS[5], DEFS[19]], exp: "Decoding (解码)。" },
+                { id: 4, q: "Definition of: Social context", ans: DEFS[4], opts: [DEFS[4], DEFS[5], DEFS[26], DEFS[7]], exp: "Social context (社会语境)。" },
+                { id: 5, q: "Definition of: Cultural context", ans: DEFS[5], opts: [DEFS[5], DEFS[4], DEFS[6], DEFS[21]], exp: "Cultural context (文化语境)。" },
+                { id: 6, q: "Definition of: Intercultural Communication", ans: DEFS[6], opts: [DEFS[6], DEFS[7], DEFS[1], DEFS[5]], exp: "Intercultural Communication (跨文化沟通)。" },
+                { id: 7, q: "Definition of: Intercultural Business Communication", ans: DEFS[7], opts: [DEFS[7], DEFS[6], DEFS[1], DEFS[12]], exp: "Intercultural Business Communication (跨文化商务沟通)。" },
+                { id: 8, q: "Definition of: Stereotyping", ans: DEFS[8], opts: [DEFS[8], DEFS[9], DEFS[10], "Belief that one is superior because of skin color"], exp: "Stereotyping (刻板印象)。" },
+                { id: 9, q: "Definition of: Prejudice", ans: DEFS[9], opts: [DEFS[9], DEFS[8], DEFS[10], "Your own culture is correct"], exp: "Prejudice (偏见)。" },
+                { id: 10, q: "Definition of: Cultural shock", ans: DEFS[10], opts: [DEFS[10], DEFS[8], DEFS[9], DEFS[5]], exp: "Cultural shock (文化冲击)。" },
+                { id: 11, q: "Definition of: Culture", ans: DEFS[11], opts: [DEFS[11], DEFS[1], DEFS[5], DEFS[13]], exp: "Culture (文化)。" },
+                { id: 12, q: "Definition of: Sociocultural values", ans: DEFS[12], opts: [DEFS[12], DEFS[13], DEFS[5], DEFS[18]], exp: "Sociocultural values (社会文化价值观)。" },
+                { id: 13, q: "Definition of: Individualism", ans: DEFS[13], opts: [DEFS[13], DEFS[14], DEFS[23], DEFS[8]], exp: "Individualism (个人主义)。" },
+                { id: 14, q: "Definition of: Long-term orientation", ans: DEFS[14], opts: [DEFS[14], DEFS[13], DEFS[15], DEFS[23]], exp: "Long-term orientation (长期导向)。" },
+                { id: 15, q: "Definition of: High-context culture", ans: DEFS[15], opts: [DEFS[15], DEFS[23], DEFS[7], DEFS[18]], exp: "High-context culture (高语境文化)。" },
+                { id: 16, q: "Definition of: Source text", ans: DEFS[16], opts: [DEFS[16], DEFS[17], DEFS[18], DEFS[19]], exp: "Source text (原文)。" },
+                { id: 17, q: "Definition of: Target text", ans: DEFS[17], opts: [DEFS[17], DEFS[16], DEFS[18], DEFS[19]], exp: "Target text (译文/目标文本)。" },
+                { id: 18, q: "Definition of: Denotational meaning", ans: DEFS[18], opts: [DEFS[18], DEFS[19], DEFS[20], DEFS[22]], exp: "Denotational meaning (字面义)。" },
+                { id: 19, q: "Definition of: Connotational meaning", ans: DEFS[19], opts: [DEFS[19], DEFS[18], DEFS[20], DEFS[21]], exp: "Connotational meaning (内涵义)。" },
+                { id: 20, q: "Definition of: Pragmatic failure/transfer", ans: DEFS[20], opts: [DEFS[20], DEFS[10], DEFS[1], DEFS[18]], exp: "Pragmatic failure (语用失误)。" },
+                { id: 21, q: "Definition of: Nonverbal communication", ans: DEFS[21], opts: [DEFS[21], DEFS[22], DEFS[1], DEFS[5]], exp: "Nonverbal communication (非言语沟通)。" },
+                { id: 22, q: "Definition of: Paralanguage", ans: DEFS[22], opts: [DEFS[22], DEFS[21], DEFS[23], DEFS[4]], exp: "Paralanguage (副语言)。" },
+                { id: 23, q: "Definition of: Monochronic-time cultures", ans: DEFS[23], opts: [DEFS[23], DEFS[24], DEFS[14], DEFS[15]], exp: "Monochronic (单向时间)。" },
+                { id: 24, q: "Definition of: Polychronic-time cultures", ans: DEFS[24], opts: [DEFS[24], DEFS[23], DEFS[21], DEFS[4]], exp: "Polychronic (多向时间)。" },
+                { id: 25, q: "Definition of: Buffer", ans: DEFS[25], opts: [DEFS[25], DEFS[26], DEFS[22], DEFS[16]], exp: "Buffer (缓冲段)。" },
+                { id: 26, q: "Definition of: Direct plan message", ans: DEFS[26], opts: [DEFS[26], DEFS[25], DEFS[15], DEFS[7]], exp: "Direct plan (直接法)。" }
             ],
             blanks: [
                 { id: 1, q: "Communication Process: If I am talking with a friend, and I want to tell them I disagree with them. I, the (1)________, will put my thoughts into words.", ans: "sender", exp: "发送者 (Sender)。" },
