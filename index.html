@@ -2,175 +2,201 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>+1教你学文化 (Mobile Fixed V7)</title>
+    <!-- 关键：viewport-fit=cover 适配刘海屏，禁止缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>+1教你学文化 (Final V9 - Full Defs)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 使用 dvh 解决移动端地址栏遮挡问题，回退使用 vh */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f3e8ff; 
-            height: 100vh; 
-            height: 100dvh; 
+        /* --- 核心移动端修复 --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 禁止 body 滚动，防止整体回弹 */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f3e8ff;
+            -webkit-tap-highlight-color: transparent; /* 移除点击高亮 */
         }
-        
-        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+
+        /* 强制全屏容器 */
+        #app-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: env(safe-area-inset-bottom); /* 适配 iPhone 底部横条 */
+        }
+
+        /* 桌面端恢复横向布局 */
+        @media (min-width: 768px) {
+            #app-wrapper {
+                flex-direction: row;
+                position: relative;
+                height: 100vh;
+            }
+        }
+
+        /* 局部滚动区域 */
+        .scroll-area {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* iOS 流畅滚动 */
+            overscroll-behavior: contain;
+        }
+
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .option-btn { transition: all 0.2s; white-space: normal; text-align: left; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
-        .option-btn:active { transform: scale(0.98); }
-        .option-btn:hover:not(:disabled) { transform: translateX(4px); box-shadow: 0 4px 6px -1px rgba(126, 34, 206, 0.1); }
-        
-        .option-selected { background-color: #e9d5ff !important; border-color: #9333ea !important; color: #4c1d95 !important; font-weight: 700; transform: translateX(4px); }
+        .option-btn { transition: transform 0.1s, background-color 0.2s; }
+        .option-btn:active { transform: scale(0.98); background-color: #f3f4f6; }
+        .option-selected { background-color: #e9d5ff !important; border-color: #9333ea !important; color: #4c1d95 !important; font-weight: 700; }
 
-        .shake { animation: shake 0.5s; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
-        
-        /* 移动端侧边栏过渡动画 */
-        .sidebar-transition { transition: transform 0.3s ease-in-out; }
-        
-        /* 滚动条美化 */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f3e8ff; }
-        ::-webkit-scrollbar-thumb { background: #c084fc; border-radius: 3px; }
-        
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d8b4fe; border-radius: 2px; }
+
         .nav-active { background-color: #581c87 !important; border-left: 4px solid #d8b4fe !important; }
-
-        /* 移动端遮罩层 */
-        .overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+        
+        .overlay { transition: opacity 0.3s ease; }
     </style>
 </head>
-<body class="flex flex-col md:flex-row overflow-hidden text-slate-800 relative">
+<body>
 
-    <!-- Mobile Overlay for Sidebar -->
-    <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 overlay z-30 hidden md:hidden transition-opacity duration-300 opacity-0"></div>
+    <div id="app-wrapper">
+        
+        <!-- Mobile Overlay -->
+        <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden opacity-0 overlay backdrop-blur-sm"></div>
 
-    <!-- Sidebar (Collapsible on Mobile, Fixed on Desktop) -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-purple-900 text-white flex flex-col shadow-2xl z-40 transform -translate-x-full md:translate-x-0 md:static sidebar-transition flex-shrink-0">
-        <div class="p-5 bg-purple-950 font-bold text-xl flex items-center justify-between border-b border-purple-800">
-            <div class="flex items-center gap-3">
-                <i class="fas fa-graduation-cap text-yellow-300 text-2xl"></i> 
-                <span class="tracking-wide">+1教你学文化</span>
-            </div>
-            <!-- Close button for mobile -->
-            <button onclick="toggleSidebar()" class="md:hidden text-purple-300 hover:text-white">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-3 space-y-2">
-            <button onclick="switchModule('matching_basic')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group nav-active" id="nav-matching_basic">
-                <span class="font-medium"><i class="fas fa-random w-6 text-center mr-2 opacity-80"></i>核心连线 (Supp)</span>
-                <span class="text-xs bg-purple-700 text-purple-100 px-2 py-1 rounded-full">5</span>
-            </button>
-            <button onclick="switchModule('matching_defs')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-matching_defs">
-                <span class="font-medium"><i class="fas fa-book-open w-6 text-center mr-2 opacity-80"></i>名词解释 (Main)</span>
-                <span class="text-xs bg-purple-700 text-purple-100 px-2 py-1 rounded-full">26</span>
-            </button>
-            <div class="h-px bg-purple-800 my-2"></div>
-            <button onclick="switchModule('blanks')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-blanks">
-                <span class="font-medium"><i class="fas fa-pencil-alt w-6 text-center mr-2 opacity-80"></i>理论填空 (Supp)</span>
-                <span class="text-xs bg-purple-700 text-purple-100 px-2 py-1 rounded-full">10</span>
-            </button>
-            <button onclick="switchModule('mc')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-mc">
-                <span class="font-medium"><i class="fas fa-list-ul w-6 text-center mr-2 opacity-80"></i>选择题 (Main)</span>
-                <span class="text-xs bg-purple-700 text-purple-100 px-2 py-1 rounded-full">70</span>
-            </button>
-            <button onclick="switchModule('tf_a')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-tf_a">
-                <span class="font-medium"><i class="fas fa-check-square w-6 text-center mr-2 opacity-80"></i>判断题 I (Supp)</span>
-                <span class="text-xs bg-purple-700 text-purple-100 px-2 py-1 rounded-full">30</span>
-            </button>
-            <button onclick="switchModule('tf_b')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-tf_b">
-                <span class="font-medium"><i class="fas fa-check-circle w-6 text-center mr-2 opacity-80"></i>判断题 II (Main)</span>
-                <span class="text-xs bg-purple-700 text-purple-100 px-2 py-1 rounded-full">96</span>
-            </button>
-        </div>
-        <div class="p-4 text-xs text-purple-300 border-t border-purple-800 text-center safe-area-bottom">
-            Mobile Optimized Version
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full relative min-w-0 bg-gray-50 w-full">
-        <!-- Top Bar -->
-        <header class="bg-white shadow-sm p-3 md:p-4 flex justify-between items-center z-10 flex-shrink-0 border-b border-gray-100">
-            <div class="flex items-center gap-3">
-                <!-- Hamburger Menu for Mobile -->
-                <button onclick="toggleSidebar()" class="md:hidden text-purple-700 p-2 rounded-lg hover:bg-purple-50 focus:outline-none">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <div>
-                    <h2 id="module-title" class="text-lg md:text-2xl font-bold text-purple-900 tracking-tight truncate max-w-[150px] md:max-w-none">核心连线</h2>
-                    <div class="text-xs md:text-sm text-gray-500">进度: <span id="progress-text" class="font-mono font-bold text-purple-600">1 / 5</span></div>
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-purple-900 text-white flex flex-col shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex-shrink-0 h-full">
+            <div class="p-4 md:p-5 bg-purple-950 font-bold text-lg md:text-xl flex items-center justify-between border-b border-purple-800 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-graduation-cap text-yellow-300"></i> 
+                    <span>+1教你学文化</span>
                 </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-purple-300 p-2">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
             
-            <div class="flex items-center gap-2 md:gap-4">
-                <label class="flex items-center cursor-pointer select-none bg-purple-50 px-3 py-1.5 md:px-4 md:py-2 rounded-full hover:bg-purple-100 transition border border-purple-100 group">
-                    <input type="checkbox" id="shuffle-toggle" class="form-checkbox h-4 w-4 md:h-5 md:w-5 text-purple-600 rounded focus:ring-purple-500" onchange="toggleShuffle()">
-                    <span class="ml-1.5 md:ml-2 text-purple-700 font-bold text-xs md:text-sm whitespace-nowrap"><i class="fas fa-random mr-1"></i>随机</span>
-                </label>
-                <!-- Jump to input (Hidden on very small screens) -->
-                <div class="hidden sm:flex items-center gap-1 bg-white p-1 rounded-lg border border-gray-200">
-                    <input type="number" id="jump-input" class="w-10 p-1 text-center text-xs outline-none font-bold text-gray-600" placeholder="#" min="1">
-                    <button onclick="jumpToQuestion()" class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">Go</button>
-                </div>
+            <div class="flex-1 overflow-y-auto p-2 space-y-1 scroll-area">
+                <button onclick="switchModule('matching_basic')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group nav-active" id="nav-matching_basic">
+                    <span class="font-medium text-sm md:text-base"><i class="fas fa-random w-5 mr-2 opacity-70"></i>核心连线 (Supp)</span>
+                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">5</span>
+                </button>
+                <button onclick="switchModule('matching_defs')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-matching_defs">
+                    <span class="font-medium text-sm md:text-base"><i class="fas fa-book-open w-5 mr-2 opacity-70"></i>名词解释 (Main)</span>
+                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">26</span>
+                </button>
+                <button onclick="switchModule('blanks')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-blanks">
+                    <span class="font-medium text-sm md:text-base"><i class="fas fa-pencil-alt w-5 mr-2 opacity-70"></i>理论填空 (Supp)</span>
+                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">10</span>
+                </button>
+                <button onclick="switchModule('mc')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-mc">
+                    <span class="font-medium text-sm md:text-base"><i class="fas fa-list-ul w-5 mr-2 opacity-70"></i>选择题 (Main)</span>
+                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">70</span>
+                </button>
+                <button onclick="switchModule('tf_a')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-tf_a">
+                    <span class="font-medium text-sm md:text-base"><i class="fas fa-check-square w-5 mr-2 opacity-70"></i>判断题 I (Supp)</span>
+                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">30</span>
+                </button>
+                <button onclick="switchModule('tf_b')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-purple-800 transition flex items-center justify-between group" id="nav-tf_b">
+                    <span class="font-medium text-sm md:text-base"><i class="fas fa-check-circle w-5 mr-2 opacity-70"></i>判断题 II (Main)</span>
+                    <span class="text-xs bg-purple-700 px-2 py-0.5 rounded-full">96</span>
+                </button>
             </div>
-        </header>
-        
-        <div class="w-full bg-gray-200 h-1.5 flex-shrink-0">
-            <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 transition-all duration-500 ease-out" style="width: 0%"></div>
-        </div>
+        </aside>
 
-        <!-- Quiz Area -->
-        <div class="flex-1 overflow-y-auto p-3 md:p-8 flex justify-center bg-fuchsia-50/30 w-full" id="quiz-container">
-            <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg p-4 md:p-10 flex flex-col fade-in mb-4 md:mb-10 h-fit border border-purple-100" id="card-content">
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 bg-gray-50 h-full w-full">
+            
+            <!-- Top Header -->
+            <header class="bg-white shadow-sm px-4 py-3 flex justify-between items-center z-20 flex-shrink-0 border-b border-gray-100">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <button onclick="toggleSidebar()" class="md:hidden text-purple-700 p-1.5 -ml-2 rounded-md active:bg-purple-50">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div class="flex flex-col overflow-hidden">
+                        <h2 id="module-title" class="text-base md:text-2xl font-bold text-purple-900 truncate">核心连线</h2>
+                        <div class="text-xs text-gray-500">进度: <span id="progress-text" class="font-bold text-purple-600">1 / 5</span></div>
+                    </div>
+                </div>
                 
-                <div class="mb-4 md:mb-8 flex-shrink-0">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center">
-                            <span class="inline-block bg-purple-100 text-purple-800 text-[10px] md:text-xs px-2 py-1 md:px-3 md:py-1.5 rounded-full font-bold uppercase tracking-wider shadow-sm" id="q-type">Matching</span>
-                        </div>
-                        <span class="text-gray-400 text-[10px] md:text-xs font-mono bg-gray-100 px-2 py-1 rounded" id="q-id">ID: #1</span>
-                    </div>
-                    <h3 class="text-lg md:text-2xl font-bold text-gray-800 leading-snug md:leading-relaxed text-justify" id="q-text">
-                        Loading...
-                    </h3>
-                    <div id="multi-hint" class="hidden mt-2 text-xs md:text-sm font-bold text-purple-600 bg-purple-50 inline-block px-2 py-1 rounded-md border border-purple-200">
-                        <i class="fas fa-check-double mr-1"></i> 多选题
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <label class="flex items-center bg-purple-50 px-3 py-1.5 rounded-full cursor-pointer active:bg-purple-100">
+                        <input type="checkbox" id="shuffle-toggle" class="w-4 h-4 text-purple-600 rounded" onchange="toggleShuffle()">
+                        <span class="ml-1.5 text-xs font-bold text-purple-700">随机</span>
+                    </label>
+                    <div class="hidden sm:flex items-center bg-white border border-gray-200 rounded-lg p-0.5">
+                        <input type="number" id="jump-input" class="w-10 text-center text-xs outline-none p-1" placeholder="#">
+                        <button onclick="jumpToQuestion()" class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">Go</button>
                     </div>
                 </div>
+            </header>
 
-                <div id="options-container" class="space-y-3 md:space-y-4 flex-grow w-full"></div>
-
-                <div id="multi-actions" class="hidden mt-4 md:mt-6">
-                    <button onclick="submitMultiAnswer()" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-bold transition shadow-lg text-base md:text-lg flex items-center justify-center active:scale-95">
-                        提交答案 (Submit) <i class="fas fa-paper-plane ml-2"></i>
-                    </button>
-                </div>
-
-                <div id="feedback-area" class="mt-6 hidden rounded-xl p-4 border-l-4 shadow-sm bg-gray-50 flex-shrink-0 text-sm md:text-base">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 mt-0.5" id="feedback-icon"></div>
-                        <div class="ml-3 w-full">
-                            <h3 class="text-base md:text-lg font-bold" id="feedback-title">Result</h3>
-                            <div class="mt-1 text-gray-700 leading-relaxed" id="feedback-msg">Explanation goes here.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-between mt-6 md:mt-10 pt-4 md:pt-6 border-t border-gray-100 flex-shrink-0 gap-3">
-                    <button id="prev-btn" onclick="prevQuestion()" class="flex-1 bg-white border-2 border-gray-200 text-gray-500 py-2.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition flex items-center justify-center font-bold disabled:opacity-40 text-sm md:text-base">
-                        <i class="fas fa-arrow-left mr-2"></i> <span class="hidden md:inline">上一题</span><span class="md:hidden">上题</span>
-                    </button>
-                    <button id="next-btn" onclick="nextQuestion()" class="flex-1 bg-purple-600 text-white py-2.5 rounded-xl hover:bg-purple-700 transition shadow-lg flex items-center justify-center font-bold text-sm md:text-lg active:scale-95">
-                        <span class="hidden md:inline">下一题</span><span class="md:hidden">下题</span> <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
-                </div>
-
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 h-1 flex-shrink-0">
+                <div id="progress-bar" class="bg-purple-500 h-1 transition-all duration-300" style="width: 0%"></div>
             </div>
-        </div>
-    </main>
+
+            <!-- Scrollable Content -->
+            <div id="quiz-container" class="flex-1 overflow-y-auto scroll-area p-3 md:p-8 w-full">
+                <div class="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-purple-50 p-4 md:p-8 mb-4 min-h-fit pb-10" id="card-content">
+                    
+                    <!-- Question Header -->
+                    <div class="mb-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-purple-100 text-purple-800 text-[10px] md:text-xs px-2 py-1 rounded font-bold uppercase" id="q-type">TYPE</span>
+                            <span class="text-gray-400 text-[10px] font-mono bg-gray-100 px-1.5 py-0.5 rounded" id="q-id">#1</span>
+                        </div>
+                        <h3 class="text-base md:text-xl font-bold text-gray-800 leading-relaxed break-words" id="q-text">Loading...</h3>
+                        <div id="multi-hint" class="hidden mt-2 text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded inline-block">
+                            <i class="fas fa-check-double mr-1"></i>多选
+                        </div>
+                    </div>
+
+                    <!-- Options -->
+                    <div id="options-container" class="space-y-3"></div>
+
+                    <!-- Actions -->
+                    <div id="multi-actions" class="hidden mt-5">
+                        <button onclick="submitMultiAnswer()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold text-sm shadow-lg active:bg-purple-700 active:shadow-none transition-all">
+                            提交答案
+                        </button>
+                    </div>
+
+                    <!-- Feedback -->
+                    <div id="feedback-area" class="mt-5 hidden rounded-lg p-3 border-l-4 bg-gray-50 text-sm break-words">
+                        <div class="flex gap-3">
+                            <div id="feedback-icon" class="flex-shrink-0 mt-0.5"></div>
+                            <div>
+                                <div id="feedback-title" class="font-bold"></div>
+                                <div id="feedback-msg" class="mt-1 text-gray-700 leading-relaxed"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-gray-100">
+                        <button id="prev-btn" onclick="prevQuestion()" class="bg-white border border-gray-200 text-gray-600 py-2.5 rounded-lg font-bold text-sm active:bg-gray-50 disabled:opacity-50">
+                            <i class="fas fa-arrow-left mr-1"></i> 上一题
+                        </button>
+                        <button id="next-btn" onclick="nextQuestion()" class="bg-purple-600 text-white py-2.5 rounded-lg font-bold text-sm shadow-md active:bg-purple-700 active:shadow-none">
+                            下一题 <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
 
     <script>
         const DB = {
@@ -182,32 +208,32 @@
                 { id: 5, q: "Definition of: Ethnocentrism", opts: ["Your own culture is correct", "Superior because of color of skin", "Anxiety from losing all familiar signs", "Refers to the process of the sender putting the message into a signal"], ans: "Your own culture is correct", exp: "Ethnocentrism (民族中心主义) 指认为自己的文化是正确的、优越的。" },
             ],
             matching_defs: [
-                { id: 1, q: "Definition of: Communication", opts: ["Refers to the act and process of sending and receiving messages among people", "Refers to interpersonal communication between members of different cultures", "Refers to communication norms in different cultures", "Refers to the occasion involved and the people in it"], ans: "Refers to the act and process of sending and receiving messages among people", exp: "Communication (沟通) 的基本定义。" },
-                { id: 2, q: "Definition of: Encoding", opts: ["Refers to the process of the sender putting the message into a signal", "Refers to the process of the receiver interpreting the signal", "Refers to the act and process of sending messages", "The inability to understand what is meant by what is said"], ans: "Refers to the process of the sender putting the message into a signal", exp: "Encoding (编码) 是发送者(Sender)将信息转化为信号的过程。" },
-                { id: 3, q: "Definition of: Decoding", opts: ["Refers to the process of the receiver interpreting the signal from the sender", "Refers to the process of the sender putting the message into a signal", "Refers to communication norms in different cultures", "Extended meaning or associated meaning"], ans: "Refers to the process of the receiver interpreting the signal from the sender", exp: "Decoding (解码) 是接收者(Receiver)解读来自发送者的信号的过程。" },
-                { id: 4, q: "Definition of: Social context", opts: ["Refers to the occasion involved and the people in it", "Refers to communication norms in different cultures", "Refers to the setting or situation within which communication takes place", "Refers to communication within and between businesses"], ans: "Refers to the occasion involved and the people in it", exp: "Social context (社会语境) 指的是沟通所涉及的场合(occasion)以及参与其中的人。" },
-                { id: 5, q: "Definition of: Cultural context", opts: ["Refers to communication norms in different cultures", "Refers to the occasion involved and the people in it", "Refers to interpersonal communication between members of different cultures", "Refers to communication without the use of words"], ans: "Refers to communication norms in different cultures", exp: "Cultural context (文化语境) 指的是不同文化中特定的沟通规范。" },
-                { id: 6, q: "Definition of: Intercultural Communication", opts: ["Refers to interpersonal communication between members of different cultures", "Refers to communication within and between businesses involving different cultures", "Refers to the act and process of sending messages", "Refers to communication norms in different cultures"], ans: "Refers to interpersonal communication between members of different cultures", exp: "Intercultural Communication (跨文化沟通) 特指不同文化成员之间的人际沟通。" },
+                { id: 1, q: "Definition of: Communication", opts: ["Refers to the act and process of sending and receiving messages among people", "Refers to interpersonal communication between members of different cultures", "Refers to communication norms in different cultures", "Refers to the occasion involved and the people in it"], ans: "Refers to the act and process of sending and receiving messages among people", exp: "Communication (沟通)。" },
+                { id: 2, q: "Definition of: Encoding", opts: ["Refers to the process of the sender putting the message into a signal", "Refers to the process of the receiver interpreting the signal from the sender", "Refers to the act and process of sending messages", "The inability to understand what is meant by what is said"], ans: "Refers to the process of the sender putting the message into a signal", exp: "Encoding (编码)。" },
+                { id: 3, q: "Definition of: Decoding", opts: ["Refers to the process of the receiver interpreting the signal from the sender", "Refers to the process of the sender putting the message into a signal", "Refers to communication norms in different cultures", "Extended meaning or associated meaning"], ans: "Refers to the process of the receiver interpreting the signal from the sender", exp: "Decoding (解码)。" },
+                { id: 4, q: "Definition of: Social context", opts: ["Refers to the occasion involved and the people in it", "Refers to communication norms in different cultures", "Refers to the setting or situation within which communication takes place", "Refers to communication within and between businesses"], ans: "Refers to the occasion involved and the people in it", exp: "Social context (社会语境)。" },
+                { id: 5, q: "Definition of: Cultural context", opts: ["Refers to communication norms in different cultures", "Refers to the occasion involved and the people in it", "Refers to interpersonal communication between members of different cultures", "Refers to communication without the use of words"], ans: "Refers to communication norms in different cultures", exp: "Cultural context (文化语境)。" },
+                { id: 6, q: "Definition of: Intercultural Communication", opts: ["Refers to interpersonal communication between members of different cultures", "Refers to communication within and between businesses involving different cultures", "Refers to the act and process of sending messages", "Refers to communication norms in different cultures"], ans: "Refers to interpersonal communication between members of different cultures", exp: "Intercultural Communication (跨文化沟通)。" },
                 { id: 7, q: "Definition of: Intercultural Business Communication", opts: ["Refers to communication within and between businesses that involve people from more than one culture", "Refers to interpersonal communication between members of different cultures", "Refers to the act and process of sending messages", "Values are at the core of culture"], ans: "Refers to communication within and between businesses that involve people from more than one culture", exp: "Intercultural Business Communication (跨文化商务沟通)。" },
                 { id: 8, q: "Definition of: Stereotyping", opts: ["Refers to an overly simplified or generalized way of thinking about a person or a group", "Refers to the irrational dislike of a particular group", "Refers to the feeling of confusion or disorientation", "Belief that one is superior because of skin color"], ans: "Refers to an overly simplified or generalized way of thinking about a person or a group", exp: "Stereotyping (刻板印象)。" },
-                { id: 9, q: "Definition of: Prejudice", opts: ["Refers to the irrational dislike, suspicion or hatred of a particular group", "Refers to an overly simplified way of thinking", "Refers to the feeling of confusion or disorientation", "Your own culture is correct"], ans: "Refers to the irrational dislike, suspicion or hatred of a particular group", exp: "Prejudice (偏见) 强调的是一种非理性的厌恶、怀疑或仇恨。" },
-                { id: 10, q: "Definition of: Cultural shock", opts: ["Refers to the feeling of confusion or disorientation experienced in new situations", "Refers to an overly simplified way of thinking", "Refers to the irrational dislike of a group", "Refers to communication norms in different cultures"], ans: "Refers to the feeling of confusion or disorientation experienced in new situations", exp: "Cultural shock (文化冲击)。" },
-                { id: 11, q: "Definition of: Culture", opts: ["An abstract entity which involves usually manmade collective and shared artifacts, behavior patterns and values", "Refers to the act and process of sending messages", "Refers to communication norms in different cultures", "The idea of people taking care of themselves"], ans: "An abstract entity which involves usually manmade collective and shared artifacts, behavior patterns and values", exp: "Culture (文化) 定义。" },
-                { id: 12, q: "Definition of: Sociocultural values", opts: ["System of criteria by which conduct is judged; preferability of one belief over another", "The idea of people taking care of themselves", "Refers to communication norms in different cultures", "Dictionary meaning or literal meaning"], ans: "System of criteria by which conduct is judged; preferability of one belief over another", exp: "Sociocultural values (社会文化价值观)。" },
+                { id: 9, q: "Definition of: Prejudice", opts: ["Refers to the irrational dislike, suspicion or hatred of a particular group, race, religion, or sexual orientation", "Refers to an overly simplified way of thinking", "Refers to the feeling of confusion or disorientation", "Your own culture is correct"], ans: "Refers to the irrational dislike, suspicion or hatred of a particular group, race, religion, or sexual orientation", exp: "Prejudice (偏见) - 定义已补全。" },
+                { id: 10, q: "Definition of: Cultural shock", opts: ["Refers to the feeling of confusion or disorientation that one experiences when faced with a number of new and unfamiliar people or situations", "Refers to an overly simplified way of thinking", "Refers to the irrational dislike of a group", "Refers to communication norms in different cultures"], ans: "Refers to the feeling of confusion or disorientation that one experiences when faced with a number of new and unfamiliar people or situations", exp: "Cultural shock (文化冲击) - 定义已补全。" },
+                { id: 11, q: "Definition of: Culture", opts: ["It is what distinguishes human beings from animals. It is an abstract entity which involves a number of usually manmade collective and shared artifacts, behavior patterns and values", "Refers to the act and process of sending messages", "Refers to communication norms in different cultures", "The idea of people taking care of themselves"], ans: "It is what distinguishes human beings from animals. It is an abstract entity which involves a number of usually manmade collective and shared artifacts, behavior patterns and values", exp: "Culture (文化) - 定义已补全。" },
+                { id: 12, q: "Definition of: Sociocultural values", opts: ["Values are at the core of culture and can be defined as the preferability of one belief over another; the system of criteria by which conduct is judged", "The idea of people taking care of themselves", "Refers to communication norms in different cultures", "Dictionary meaning or literal meaning"], ans: "Values are at the core of culture and can be defined as the preferability of one belief over another; the system of criteria by which conduct is judged", exp: "Sociocultural values (社会文化价值观) - 定义已补全。" },
                 { id: 13, q: "Definition of: Individualism", opts: ["The idea of people taking care of themselves and their immediate families", "A cultural dimension that measures a society’s focus on the future", "Paying attention to and doing only one thing at a time", "Refers to an overly simplified way of thinking"], ans: "The idea of people taking care of themselves and their immediate families", exp: "Individualism (个人主义)。" },
                 { id: 14, q: "Definition of: Long-term orientation", opts: ["A cultural dimension that measures a society’s focus on the future", "The idea of people taking care of themselves", "Style where people encode messages in context", "Paying attention to and doing only one thing at a time"], ans: "A cultural dimension that measures a society’s focus on the future", exp: "Long-term orientation (长期导向)。" },
-                { id: 15, q: "Definition of: High-context culture", opts: ["Style where people encode messages in context (relationship, history) rather than explicit words", "Means paying attention to and doing only one thing at a time", "Refers to communication within and between businesses", "Dictionary meaning or literal meaning"], ans: "Style where people encode messages in context (relationship, history) rather than explicit words", exp: "High-context culture (高语境文化)。" },
+                { id: 15, q: "Definition of: High-context culture", opts: ["A style of communication where people encode messages in the surrounding context (relationship, history) rather than in the explicit words", "Means paying attention to and doing only one thing at a time", "Refers to communication within and between businesses", "Dictionary meaning or literal meaning"], ans: "A style of communication where people encode messages in the surrounding context (relationship, history) rather than in the explicit words", exp: "High-context culture (高语境文化) - 定义已补全。" },
                 { id: 16, q: "Definition of: Source text", opts: ["The original language text of a translation", "The text into which it is translated", "Dictionary meaning or literal meaning", "Extended meaning or associated meaning"], ans: "The original language text of a translation", exp: "Source text (原文)。" },
                 { id: 17, q: "Definition of: Target text", opts: ["The text into which it is translated", "The original language text of a translation", "Dictionary meaning or literal meaning", "Extended meaning or associated meaning"], ans: "The text into which it is translated", exp: "Target text (译文/目标文本)。" },
                 { id: 18, q: "Definition of: Denotational meaning", opts: ["Dictionary meaning or literal meaning", "Extended meaning or associated meaning", "The inability to understand what is meant", "Refers to the rate, pitch, and volume qualities"], ans: "Dictionary meaning or literal meaning", exp: "Denotational meaning (字面义)。" },
                 { id: 19, q: "Definition of: Connotational meaning", opts: ["Extended meaning or associated meaning", "Dictionary meaning or literal meaning", "The inability to understand what is meant", "Refers to communication without words"], ans: "Extended meaning or associated meaning", exp: "Connotational meaning (内涵义)。" },
                 { id: 20, q: "Definition of: Pragmatic failure/transfer", opts: ["The inability to understand what is meant by what is said", "Refers to the feeling of confusion or disorientation", "Refers to the act and process of sending messages", "Dictionary meaning or literal meaning"], ans: "The inability to understand what is meant by what is said", exp: "Pragmatic failure (语用失误)。" },
                 { id: 21, q: "Definition of: Nonverbal communication", opts: ["Refers to communication without the use of words", "Refers to the rate, pitch, and volume qualities of voice", "Refers to the act and process of sending messages", "Refers to communication norms in different cultures"], ans: "Refers to communication without the use of words", exp: "Nonverbal communication (非言语沟通)。" },
-                { id: 22, q: "Definition of: Paralanguage", opts: ["Refers to the rate, pitch, and volume qualities of the voice", "Refers to communication without the use of words", "Means paying attention to and doing only one thing at a time", "Refers to the occasion involved and the people in it"], ans: "Refers to the rate, pitch, and volume qualities of the voice", exp: "Paralanguage (副语言)。" },
+                { id: 22, q: "Definition of: Paralanguage", opts: ["Refers to the rate, pitch, and volume qualities of the voice, which interrupt or temporarily take the place of speech and affect the meaning of a message", "Refers to communication without the use of words", "Means paying attention to and doing only one thing at a time", "Refers to the occasion involved and the people in it"], ans: "Refers to the rate, pitch, and volume qualities of the voice, which interrupt or temporarily take the place of speech and affect the meaning of a message", exp: "Paralanguage (副语言) - 定义已补全。" },
                 { id: 23, q: "Definition of: Monochronic-time cultures", opts: ["Means paying attention to and doing only one thing at a time", "Means being involved with many things at once", "A cultural dimension that measures a society’s focus on the future", "Style where people encode messages in context"], ans: "Means paying attention to and doing only one thing at a time", exp: "Monochronic (单向时间)。" },
                 { id: 24, q: "Definition of: Polychronic-time cultures", opts: ["Means being involved with many things at once", "Means paying attention to and doing only one thing at a time", "Refers to communication without the use of words", "Refers to the occasion involved and the people in it"], ans: "Means being involved with many things at once", exp: "Polychronic (多向时间)。" },
-                { id: 25, q: "Definition of: Buffer", opts: ["A paragraph that is pleasant and says neither “yes” nor “no”", "A message starts with clearly stating the main idea", "Refers to the rate, pitch, and volume qualities", "The original language text of a translation"], ans: "A paragraph that is pleasant and says neither “yes” nor “no”", exp: "Buffer (缓冲段)。" },
-                { id: 26, q: "Definition of: Direct plan message", opts: ["A message starts with clearly stating the main idea/good news first", "A paragraph that is pleasant and says neither “yes” nor “no”", "Style where people encode messages in context", "Refers to communication within and between businesses"], ans: "A message starts with clearly stating the main idea/good news first", exp: "Direct plan (直接法)。" }
+                { id: 25, q: "Definition of: Buffer", opts: ["A paragraph that tells what the letter is about, is pleasant and says neither “yes” nor “no”", "A message starts with clearly stating the main idea", "Refers to the rate, pitch, and volume qualities", "The original language text of a translation"], ans: "A paragraph that tells what the letter is about, is pleasant and says neither “yes” nor “no”", exp: "Buffer (缓冲段) - 定义已补全。" },
+                { id: 26, q: "Definition of: Direct plan message", opts: ["A message starts with clearly stating the main idea, the request or the good news first, then include the details necessary and at last close cordially", "A paragraph that is pleasant and says neither “yes” nor “no”", "Style where people encode messages in context", "Refers to communication within and between businesses"], ans: "A message starts with clearly stating the main idea, the request or the good news first, then include the details necessary and at last close cordially", exp: "Direct plan (直接法) - 定义已补全。" }
             ],
             blanks: [
                 { id: 1, q: "Communication Process: If I am talking with a friend, and I want to tell them I disagree with them. I, the (1)________, will put my thoughts into words.", ans: "sender", exp: "发送者 (Sender)。" },
@@ -392,7 +418,7 @@
                 {id:54, q:"Easterners tend to associate redness with something dangerous, threatening cruelty or blooding and communism.", ans:"False", exp:"错误。这是西方人对红色的联想；东方人通常认为红色代表吉祥、喜庆。"},
                 
                 // --- FIXED QUESTIONS BELOW ---
-                {id:55, q:"Words in general use usually acquire connotational meanings.", ans:"True", exp:"Correct. 一般常用词通常会获得内涵意义 (Connotational meanings)。(Old key F -> New True)"},
+                {id:55, q:"Words in general use usually acquire connotational meanings.", ans:"False", exp:"False. (Fixed per Doc). Words in general use typically convey denotational (literal) meaning."},
                 {id:56, q:"Inductive pattern is less indirect.", ans:"False", exp:"Incorrect. Inductive (specific to general) is usually considered MORE indirect (e.g. Chinese style) than Deductive. (Old key T -> New False)"},
                 {id:57, q:"Members of low uncertainty avoidance cultures use the succinct style.", ans:"False", exp:"Incorrect. Succinct style (silence) is typically found in High Context/High UA cultures. (Old key T -> New False)"},
                 {id:58, q:'In Chinese culture, kinship terms are not only used with one\'s own family, but also to other people (e.g., "police uncle").', ans:"True", exp:"正确。拟亲属称谓语（Fictive kinship terms）在中国文化中很常见。"},
@@ -437,7 +463,7 @@
             ]
         };
 
-        // --- APP LOGIC ---
+        // --- 应用状态 ---
         let currentModule = 'matching_basic';
         let currentQuestionIndex = 0;
         let isShuffled = false;
@@ -445,59 +471,73 @@
         let isProcessing = false;
         let currentMultiSelection = [];
 
+        // --- DOM 缓存 ---
         const dom = {
-            navBtns: document.querySelectorAll('.nav-btn'),
-            moduleTitle: document.getElementById('module-title'),
-            progressText: document.getElementById('progress-text'),
-            progressBar: document.getElementById('progress-bar'),
+            sidebar: document.getElementById('sidebar'),
+            overlay: document.getElementById('mobile-overlay'),
+            title: document.getElementById('module-title'),
+            progress: document.getElementById('progress-text'),
+            bar: document.getElementById('progress-bar'),
             qType: document.getElementById('q-type'),
             qId: document.getElementById('q-id'),
             qText: document.getElementById('q-text'),
-            optionsContainer: document.getElementById('options-container'),
-            card: document.getElementById('card-content'),
-            feedbackArea: document.getElementById('feedback-area'),
-            feedbackTitle: document.getElementById('feedback-title'),
-            feedbackMsg: document.getElementById('feedback-msg'),
-            feedbackIcon: document.getElementById('feedback-icon'),
-            nextBtn: document.getElementById('next-btn'),
-            prevBtn: document.getElementById('prev-btn'),
-            jumpInput: document.getElementById('jump-input'),
+            opts: document.getElementById('options-container'),
+            fbArea: document.getElementById('feedback-area'),
+            fbTitle: document.getElementById('feedback-title'),
+            fbMsg: document.getElementById('feedback-msg'),
+            fbIcon: document.getElementById('feedback-icon'),
+            navBtns: document.querySelectorAll('.nav-btn'),
+            shuffle: document.getElementById('shuffle-toggle'),
+            jump: document.getElementById('jump-input'),
             multiActions: document.getElementById('multi-actions'),
             multiHint: document.getElementById('multi-hint'),
-            sidebar: document.getElementById('sidebar'),
-            overlay: document.getElementById('mobile-overlay')
+            prevBtn: document.getElementById('prev-btn'),
+            nextBtn: document.getElementById('next-btn')
         };
 
+        // --- 初始化 ---
         function init() {
+            // 默认全屏，防止 iOS 滚动链
+            document.body.style.overscrollBehavior = 'none';
             switchModule('matching_basic');
         }
 
+        // --- 侧边栏逻辑 ---
         function toggleSidebar() {
-            dom.sidebar.classList.toggle('-translate-x-full');
+            const isClosed = dom.sidebar.classList.contains('-translate-x-full');
             
-            if (dom.overlay.classList.contains('hidden')) {
+            if (isClosed) {
+                // 打开
+                dom.sidebar.classList.remove('-translate-x-full');
                 dom.overlay.classList.remove('hidden');
+                // 动画延迟
                 setTimeout(() => dom.overlay.classList.remove('opacity-0'), 10);
             } else {
+                // 关闭
+                dom.sidebar.classList.add('-translate-x-full');
                 dom.overlay.classList.add('opacity-0');
                 setTimeout(() => dom.overlay.classList.add('hidden'), 300);
             }
         }
 
+        // --- 核心逻辑 ---
         function switchModule(moduleName) {
             currentModule = moduleName;
             currentQuestionIndex = 0;
             isProcessing = false;
             
+            // 更新 UI
             dom.navBtns.forEach(btn => {
                 btn.classList.remove('nav-active');
                 if(btn.id === `nav-${moduleName}`) btn.classList.add('nav-active');
             });
-            dom.moduleTitle.textContent = getModuleTitle(moduleName);
+            dom.title.textContent = getModuleTitle(moduleName);
             
-            // On mobile, close sidebar after selection
-            if(window.innerWidth < 768) {
-                toggleSidebar();
+            // 手机端自动收起侧边栏
+            if (window.innerWidth < 768) {
+                dom.sidebar.classList.add('-translate-x-full');
+                dom.overlay.classList.add('opacity-0');
+                setTimeout(() => dom.overlay.classList.add('hidden'), 300);
             }
 
             generateOrder();
@@ -517,7 +557,7 @@
         }
 
         function toggleShuffle() {
-            isShuffled = document.getElementById('shuffle-toggle').checked;
+            isShuffled = dom.shuffle.checked;
             currentQuestionIndex = 0;
             generateOrder();
             renderQuestion();
@@ -527,6 +567,7 @@
             const total = DB[currentModule].length;
             questionOrder = Array.from({length: total}, (_, i) => i);
             if(isShuffled) {
+                // Fisher-Yates Shuffle
                 for(let i = questionOrder.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [questionOrder[i], questionOrder[j]] = [questionOrder[j], questionOrder[i]];
@@ -535,22 +576,12 @@
         }
 
         function jumpToQuestion() {
-            const val = parseInt(dom.jumpInput.value);
+            const val = parseInt(dom.jump.value);
             if (val > 0 && val <= DB[currentModule].length) {
                 currentQuestionIndex = val - 1; 
                 renderQuestion();
-                dom.jumpInput.value = '';
+                dom.jump.value = '';
             }
-        }
-
-        function shuffleArray(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-            }
-            return array;
         }
 
         function renderQuestion() {
@@ -558,230 +589,213 @@
             const qData = DB[currentModule][realIndex];
             const total = DB[currentModule].length;
 
-            dom.card.classList.remove('fade-in');
-            void dom.card.offsetWidth;
-            dom.card.classList.add('fade-in');
-            dom.feedbackArea.classList.add('hidden');
+            // Reset UI States
+            dom.fbArea.classList.add('hidden');
             dom.multiActions.classList.add('hidden');
             dom.multiHint.classList.add('hidden');
             currentMultiSelection = [];
-
-            dom.progressText.textContent = `${currentQuestionIndex + 1} / ${total}`;
-            dom.progressBar.style.width = `${((currentQuestionIndex + 1) / total) * 100}%`;
-            dom.qId.textContent = `ID: #${qData.id}`;
-            dom.qType.textContent = getModuleTitle(currentModule).split(' ')[0];
             
+            // Update Headers
+            dom.progress.textContent = `${currentQuestionIndex + 1} / ${total}`;
+            dom.bar.style.width = `${((currentQuestionIndex + 1) / total) * 100}%`;
+            dom.qId.textContent = `#${qData.id}`;
+            dom.qType.textContent = getModuleTitle(currentModule).split(' ')[0]; // 简短标题
             dom.qText.textContent = qData.q;
             
+            // Buttons State
             dom.prevBtn.disabled = currentQuestionIndex === 0;
-            dom.nextBtn.style.display = 'flex'; 
-            dom.nextBtn.disabled = false;
-
-            dom.optionsContainer.innerHTML = '';
             
-            if (currentModule === 'blanks') {
-                const inputGroup = document.createElement('div');
-                inputGroup.className = 'flex gap-2 md:gap-3 mt-4 md:mt-6';
-                inputGroup.innerHTML = `
-                    <input type="text" id="blank-input" class="flex-1 p-3 md:p-4 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:outline-none transition text-base md:text-lg bg-gray-50" placeholder="Type answer...">
-                    <button onclick="submitBlank()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 md:px-8 rounded-xl font-bold transition shadow-md">Check</button>
-                `;
-                dom.optionsContainer.appendChild(inputGroup);
-                
-                setTimeout(() => {
-                    const inp = document.getElementById('blank-input');
-                    inp.focus();
-                    inp.addEventListener('keypress', (e) => {
-                        if(e.key === 'Enter') submitBlank();
-                    });
-                }, 50);
+            // Clear Options
+            dom.opts.innerHTML = '';
 
-            } else if (qData.type === 'multi') {
+            // Render Input for Blanks
+            if (currentModule === 'blanks') {
+                dom.opts.innerHTML = `
+                    <div class="flex gap-2">
+                        <input type="text" id="blank-input" class="flex-1 p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 transition font-bold text-gray-700" placeholder="请输入答案..." autocomplete="off">
+                        <button onclick="submitBlank()" class="bg-purple-600 text-white px-4 rounded-lg font-bold">检查</button>
+                    </div>
+                `;
+                // Focus slightly delayed for mobile keyboard
+                // setTimeout(() => document.getElementById('blank-input').focus(), 100);
+            } 
+            // Render Multi-select
+            else if (qData.type === 'multi') {
                 dom.multiActions.classList.remove('hidden');
                 dom.multiHint.classList.remove('hidden');
-                qData.opts.forEach(opt => createMultiSelectBtn(opt));
-
-            } else if (currentModule.startsWith('tf')) {
-                ['True', 'False'].forEach(opt => createBtn(opt, qData));
-            } else if (currentModule === 'mc') {
-                qData.opts.forEach(opt => createBtn(opt, qData));
-            } else {
-                const shuffledOpts = shuffleArray([...qData.opts]);
-                shuffledOpts.forEach(opt => createBtn(opt, qData));
+                qData.opts.forEach(opt => createBtn(opt, qData, true));
+            } 
+            // Render Single-select (TF or MC)
+            else if (currentModule.startsWith('tf')) {
+                ['True', 'False'].forEach(opt => createBtn(opt, qData, false));
+            } 
+            else {
+                // Shuffle options for normal MC/Matching (if needed, otherwise keep order)
+                // Using spread to avoid mutating original
+                const opts = [...qData.opts];
+                // simple shuffle for display
+                opts.sort(() => Math.random() - 0.5);
+                opts.forEach(opt => createBtn(opt, qData, false));
             }
         }
 
-        function createBtn(text, qData) {
+        function createBtn(text, qData, isMulti) {
             const btn = document.createElement('button');
-            btn.className = 'option-btn w-full text-left p-4 md:p-5 rounded-xl border-2 border-purple-50 bg-white hover:border-purple-300 hover:bg-purple-50 text-gray-700 font-medium text-sm md:text-lg shadow-sm mb-2 md:mb-3';
-            btn.textContent = text;
-            btn.onclick = () => check(text, btn, qData);
-            dom.optionsContainer.appendChild(btn);
-        }
-
-        function createMultiSelectBtn(text) {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn w-full text-left p-4 md:p-5 rounded-xl border-2 border-purple-50 bg-white hover:border-purple-300 hover:bg-purple-50 text-gray-700 font-medium text-sm md:text-lg shadow-sm mb-2 md:mb-3 flex justify-between items-center group';
-            btn.innerHTML = `<span>${text}</span> <i class="far fa-square text-purple-300 text-lg md:text-xl group-hover:text-purple-500 transition"></i>`;
+            // Tailored classes for mobile touch targets
+            btn.className = 'option-btn w-full text-left p-4 rounded-lg border-2 border-purple-100 bg-white text-gray-700 font-medium text-sm md:text-base leading-snug flex items-center justify-between group touch-manipulation';
             
-            btn.onclick = () => {
-                if (currentMultiSelection.includes(text)) {
-                    currentMultiSelection = currentMultiSelection.filter(t => t !== text);
-                    btn.classList.remove('option-selected');
-                    btn.querySelector('i').className = 'far fa-square text-purple-300 text-lg md:text-xl group-hover:text-purple-500 transition';
-                } else {
-                    currentMultiSelection.push(text);
-                    btn.classList.add('option-selected');
-                    btn.querySelector('i').className = 'fas fa-check-square text-purple-600 text-lg md:text-xl transition';
-                }
-            };
-            dom.optionsContainer.appendChild(btn);
+            if (isMulti) {
+                btn.innerHTML = `<span class="flex-1 mr-2">${text}</span> <i class="far fa-square text-purple-300 text-lg"></i>`;
+                btn.onclick = () => toggleMultiSelect(btn, text);
+            } else {
+                btn.textContent = text;
+                btn.onclick = () => checkSingle(btn, text, qData);
+            }
+            dom.opts.appendChild(btn);
         }
 
-        function check(selected, btn, qData) {
+        function toggleMultiSelect(btn, text) {
+            const icon = btn.querySelector('i');
+            if (currentMultiSelection.includes(text)) {
+                currentMultiSelection = currentMultiSelection.filter(t => t !== text);
+                btn.classList.remove('option-selected');
+                icon.className = 'far fa-square text-purple-300 text-lg';
+            } else {
+                currentMultiSelection.push(text);
+                btn.classList.add('option-selected');
+                icon.className = 'fas fa-check-square text-purple-600 text-lg';
+            }
+        }
+
+        function checkSingle(btn, selected, qData) {
             if(isProcessing) return;
             
-            const isCorrect = (selected === qData.ans);
-            const allBtns = dom.optionsContainer.querySelectorAll('button');
-            
+            // Disable all siblings
+            const allBtns = dom.opts.querySelectorAll('button');
             allBtns.forEach(b => b.disabled = true);
 
-            if(isCorrect) {
-                btn.className = 'w-full text-left p-4 md:p-5 rounded-xl border-2 border-green-500 bg-green-50 text-green-900 font-bold shadow-md text-sm md:text-lg';
-                btn.innerHTML += ' <i class="fas fa-check-circle float-right text-green-600 mt-1"></i>';
-                
+            const isCorrect = (selected === qData.ans);
+
+            if (isCorrect) {
+                btn.className = 'w-full text-left p-4 rounded-lg border-2 border-green-500 bg-green-50 text-green-900 font-bold flex justify-between items-center';
+                btn.innerHTML = `<span>${selected}</span> <i class="fas fa-check-circle text-green-600"></i>`;
                 showFeedback(true, qData.exp || "Correct!");
-                
-                isProcessing = true;
-                setTimeout(() => {
-                    nextQuestion();
-                    isProcessing = false;
-                }, 1000); 
+                autoNext();
             } else {
-                btn.className = 'w-full text-left p-4 md:p-5 rounded-xl border-2 border-red-500 bg-red-50 text-red-900 font-medium shake shadow-md text-sm md:text-lg';
-                btn.innerHTML += ' <i class="fas fa-times-circle float-right text-red-600 mt-1"></i>';
+                btn.className = 'w-full text-left p-4 rounded-lg border-2 border-red-500 bg-red-50 text-red-900 font-bold flex justify-between items-center shake';
+                btn.innerHTML = `<span>${selected}</span> <i class="fas fa-times-circle text-red-600"></i>`;
                 
+                // Highlight correct one
                 allBtns.forEach(b => {
-                    if(b.textContent === qData.ans) {
-                        b.className = 'w-full text-left p-4 md:p-5 rounded-xl border-2 border-green-500 bg-green-50 text-green-900 font-bold opacity-80 text-sm md:text-lg';
-                        b.innerHTML += ' <i class="fas fa-check float-right text-green-600 mt-1"></i>';
+                    if (b.textContent === qData.ans) {
+                        b.className = 'w-full text-left p-4 rounded-lg border-2 border-green-500 bg-white text-green-900 font-bold opacity-80 flex justify-between items-center';
+                        b.innerHTML = `<span>${qData.ans}</span> <i class="fas fa-check text-green-600"></i>`;
                     }
                 });
-                showFeedback(false, qData.exp ? `解析: ${qData.exp}` : `Correct Answer: ${qData.ans}`);
+                showFeedback(false, qData.exp ? `解析: ${qData.exp}` : `Correct: ${qData.ans}`);
             }
         }
 
         function submitMultiAnswer() {
             if(isProcessing) return;
-            
             const realIndex = questionOrder[currentQuestionIndex];
             const qData = DB[currentModule][realIndex];
-            const correctArr = qData.ans;
-            
+            const correctArr = qData.ans; // Array
+
+            // Sort both for comparison
             const userSorted = [...currentMultiSelection].sort();
             const correctSorted = [...correctArr].sort();
             const isCorrect = JSON.stringify(userSorted) === JSON.stringify(correctSorted);
 
-            const allBtns = dom.optionsContainer.querySelectorAll('button');
+            const allBtns = dom.opts.querySelectorAll('button');
             allBtns.forEach(b => b.disabled = true);
             dom.multiActions.classList.add('hidden');
 
             if (isCorrect) {
-                allBtns.forEach(b => {
-                    const text = b.querySelector('span').textContent;
-                    if (currentMultiSelection.includes(text)) {
-                        b.className = 'w-full text-left p-4 md:p-5 rounded-xl border-2 border-green-500 bg-green-50 text-green-900 font-bold shadow-md flex justify-between items-center text-sm md:text-lg';
-                        b.querySelector('i').className = 'fas fa-check-circle text-green-600 text-lg md:text-xl';
-                    }
-                });
-                showFeedback(true, qData.exp || "Correct! All options matched.");
-                
-                isProcessing = true;
-                setTimeout(() => {
-                    nextQuestion();
-                    isProcessing = false;
-                }, 1500);
+                showFeedback(true, qData.exp || "All correct!");
+                autoNext();
             } else {
-                allBtns.forEach(b => {
-                    const text = b.querySelector('span').textContent;
-                    const isSelected = currentMultiSelection.includes(text);
-                    const isActuallyCorrect = correctArr.includes(text);
-
-                    if (isSelected && !isActuallyCorrect) {
-                        b.className = 'w-full text-left p-4 md:p-5 rounded-xl border-2 border-red-500 bg-red-50 text-red-900 font-medium shake shadow-md flex justify-between items-center text-sm md:text-lg';
-                        b.querySelector('i').className = 'fas fa-times-circle text-red-600 text-lg md:text-xl';
-                    } else if (!isSelected && isActuallyCorrect) {
-                        b.className = 'w-full text-left p-4 md:p-5 rounded-xl border-2 border-green-500 bg-white text-green-900 font-bold opacity-80 flex justify-between items-center text-sm md:text-lg';
-                        b.querySelector('i').className = 'fas fa-check text-green-600 text-lg md:text-xl';
-                    } else if (isSelected && isActuallyCorrect) {
-                        b.className = 'w-full text-left p-4 md:p-5 rounded-xl border-2 border-green-500 bg-green-50 text-green-900 font-bold shadow-md flex justify-between items-center text-sm md:text-lg';
-                        b.querySelector('i').className = 'fas fa-check-circle text-green-600 text-lg md:text-xl';
-                    }
-                });
-                showFeedback(false, qData.exp ? `解析: ${qData.exp}` : `Correct Answers: ${correctArr.join(', ')}`);
+                showFeedback(false, qData.exp ? `解析: ${qData.exp}` : `Correct: ${correctArr.join(', ')}`);
             }
+
+            // Visual feedback on buttons
+            allBtns.forEach(b => {
+                const text = b.querySelector('span').textContent;
+                const isSelected = currentMultiSelection.includes(text);
+                const isActuallyCorrect = correctArr.includes(text);
+                const icon = b.querySelector('i');
+
+                // Reset base classes
+                b.className = 'w-full text-left p-4 rounded-lg border-2 flex justify-between items-center font-medium text-sm md:text-base';
+
+                if (isSelected && isActuallyCorrect) {
+                    // Correctly selected
+                    b.classList.add('border-green-500', 'bg-green-50', 'text-green-900');
+                    icon.className = 'fas fa-check-circle text-green-600';
+                } else if (isSelected && !isActuallyCorrect) {
+                    // Wrongly selected
+                    b.classList.add('border-red-500', 'bg-red-50', 'text-red-900');
+                    icon.className = 'fas fa-times-circle text-red-600';
+                } else if (!isSelected && isActuallyCorrect) {
+                    // Missed correct answer
+                    b.classList.add('border-green-500', 'bg-white', 'text-green-900', 'opacity-70');
+                    icon.className = 'fas fa-check text-green-600';
+                } else {
+                    // Irrelevant
+                    b.classList.add('border-gray-100', 'bg-gray-50', 'text-gray-400');
+                    icon.className = 'far fa-square text-gray-300';
+                }
+            });
         }
 
         function submitBlank() {
-            if(isProcessing) return; 
+            if(isProcessing) return;
             const realIndex = questionOrder[currentQuestionIndex];
             const qData = DB[currentModule][realIndex];
             const input = document.getElementById('blank-input');
             const val = input.value.trim().toLowerCase();
-            const correct = qData.ans.toLowerCase();
-
-            // Allow partial matches for dual answers like "concepts / values"
-            const answers = correct.split('/').map(s => s.trim());
             
-            if(answers.includes(val) || val === correct) {
-                input.disabled = true;
-                input.className = 'flex-1 p-3 md:p-4 border-2 border-green-500 bg-green-50 rounded-xl text-green-900 font-bold';
+            // Flexible matching for "concepts / values"
+            const answers = qData.ans.toLowerCase().split('/').map(s => s.trim());
+            const isMatch = answers.some(a => val === a) || val === qData.ans.toLowerCase();
+
+            input.disabled = true;
+            
+            if (isMatch) {
+                input.classList.add('border-green-500', 'bg-green-50', 'text-green-900');
                 showFeedback(true, qData.exp || "Correct!");
-                
-                isProcessing = true;
-                setTimeout(() => {
-                    nextQuestion();
-                    isProcessing = false;
-                }, 1000);
+                autoNext();
             } else {
-                input.className = 'flex-1 p-3 md:p-4 border-2 border-red-500 bg-red-50 rounded-xl text-red-900 shake font-medium';
-                dom.feedbackArea.classList.remove('hidden');
-                dom.feedbackArea.className = 'mt-4 md:mt-8 rounded-xl p-4 md:p-5 border-l-4 shadow-sm bg-red-50 border-red-500 flex-shrink-0';
-                
-                const iconDiv = document.getElementById('feedback-icon');
-                iconDiv.innerHTML = '<i class="fas fa-times-circle text-2xl text-red-500"></i>';
-                
-                const title = document.getElementById('feedback-title');
-                title.textContent = '回答错误 (Incorrect)';
-                title.className = 'text-base md:text-lg font-bold text-red-700';
-                
-                const msg = document.getElementById('feedback-msg');
-                msg.innerHTML = `
-                    <div class="mb-2"><strong>正确答案:</strong> <span class="text-green-700 font-bold font-mono text-base md:text-lg">${qData.ans}</span></div>
-                    <div><strong>解析:</strong> ${qData.exp || '暂无解析'}</div>
-                `;
-                msg.className = "mt-2 text-red-900 text-sm md:text-base";
+                input.classList.add('border-red-500', 'bg-red-50', 'text-red-900', 'shake');
+                showFeedback(false, `正确答案: ${qData.ans}。${qData.exp || ''}`);
             }
         }
 
         function showFeedback(success, msg) {
-            dom.feedbackArea.classList.remove('hidden');
-            const colorClass = success ? 'green' : 'red'; 
+            dom.fbArea.classList.remove('hidden');
+            const color = success ? 'green' : 'red';
+            dom.fbArea.className = `mt-5 rounded-lg p-3 border-l-4 bg-${color}-50 border-${color}-500 text-sm md:text-base break-words fade-in`;
             
-            dom.feedbackArea.className = `mt-4 md:mt-8 rounded-xl p-4 md:p-5 border-l-4 shadow-sm flex-shrink-0 bg-${colorClass}-50 border-${colorClass}-500`;
+            dom.fbIcon.innerHTML = success 
+                ? `<i class="fas fa-check-circle text-xl text-${color}-500"></i>`
+                : `<i class="fas fa-info-circle text-xl text-${color}-500"></i>`;
             
-            const iconDiv = document.getElementById('feedback-icon');
-            iconDiv.innerHTML = success 
-                ? '<i class="fas fa-check-circle text-xl md:text-2xl text-green-500"></i>' 
-                : '<i class="fas fa-info-circle text-xl md:text-2xl text-red-500"></i>';
+            dom.fbTitle.textContent = success ? '回答正确' : '解析';
+            dom.fbTitle.className = `font-bold text-${color}-800`;
             
-            const title = document.getElementById('feedback-title');
-            title.textContent = success ? '回答正确 (Correct)' : '解析 (Explanation)';
-            title.className = `text-base md:text-lg font-bold text-${colorClass}-800`;
-            
-            const msgDiv = document.getElementById('feedback-msg');
-            msgDiv.textContent = msg;
-            msgDiv.className = `mt-1 md:mt-2 text-${colorClass}-900 text-sm md:text-base font-medium`;
+            dom.fbMsg.textContent = msg;
+            dom.fbMsg.className = `mt-1 text-${color}-900 leading-relaxed`;
+        }
+
+        function autoNext() {
+            isProcessing = true;
+            setTimeout(() => {
+                // 如果是最后一题，不自动跳转，让用户看结果
+                if (currentQuestionIndex < DB[currentModule].length - 1) {
+                    nextQuestion();
+                }
+                isProcessing = false;
+            }, 1000);
         }
 
         function nextQuestion() {
@@ -789,7 +803,7 @@
                 currentQuestionIndex++;
                 renderQuestion();
             } else {
-                alert("恭喜！本模块复习完成 (Module Completed)！");
+                alert("本模块复习完成！");
             }
         }
 
@@ -800,7 +814,7 @@
             }
         }
 
-        // Init
+        // Boot
         init();
 
     </script>
